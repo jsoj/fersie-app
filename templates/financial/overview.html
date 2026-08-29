@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}Painel Financeiro — Fersie App{% endblock %}
+
+{% block content %}
+<div class="fersie-financial-header" style="margin-bottom: 2rem;">
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <div>
+      <h1 class="fersie-heading-xl">Controle Comercial & Financeiro</h1>
+      <p class="fersie-text-body">Visão geral de vendas, despesas operacionais, contas a receber e conciliação de cartões.</p>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+      <a href="{% url 'financial:sales_create' %}" class="fersie-btn fersie-btn-gold">+ Nova Venda (PDV)</a>
+      <a href="{% url 'financial:purchases_create' %}" class="fersie-btn fersie-btn-primary">+ Nova Compra</a>
+    </div>
+  </div>
+
+  <!-- Sub-navigation links -->
+  <div class="fersie-nav-tabs" style="display: flex; gap: 1rem; border-bottom: 2px solid var(--fersie-gold, #c5a059); padding-bottom: 0.5rem; margin-top: 1.5rem;">
+    <a href="{% url 'financial:overview' %}" class="fersie-btn fersie-btn-sm fersie-btn-gold">Visão Geral</a>
+    <a href="{% url 'financial:sales_list' %}" class="fersie-btn fersie-btn-sm fersie-btn-secondary">Vendas</a>
+    <a href="{% url 'financial:purchases_list' %}" class="fersie-btn fersie-btn-sm fersie-btn-secondary">Compras</a>
+    <a href="{% url 'financial:expenses_list' %}" class="fersie-btn fersie-btn-sm fersie-btn-secondary">Despesas</a>
+    <a href="{% url 'financial:receivables_list' %}" class="fersie-btn fersie-btn-sm fersie-btn-secondary">Contas a Receber</a>
+    <a href="{% url 'financial:reconciliation_list' %}" class="fersie-btn fersie-btn-sm fersie-btn-secondary">Conciliação de Cartões</a>
+  </div>
+</div>
+
+<!-- 5 Summary KPI Cards -->
+<div class="fersie-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2.5rem;">
+  <div class="fersie-card">
+    <h3 class="fersie-heading-md">Total de Vendas</h3>
+    <p class="fersie-text-xl" style="color: var(--fersie-gold, #c5a059); font-weight: bold; margin-top: 0.5rem;">
+      R$ {{ total_sales }}
+    </p>
+    <span class="fersie-text-sm" style="color: #666;">Vendas concluídas</span>
+  </div>
+
+  <div class="fersie-card">
+    <h3 class="fersie-heading-md">Despesas Operacionais</h3>
+    <p class="fersie-text-xl" style="color: #d9534f; font-weight: bold; margin-top: 0.5rem;">
+      R$ {{ total_expenses }}
+    </p>
+    <span class="fersie-text-sm" style="color: #666;">Custo operacional acumulado</span>
+  </div>
+
+  <div class="fersie-card">
+    <h3 class="fersie-heading-md">Lucro Líquido</h3>
+    <p class="fersie-text-xl" style="color: {% if net_profit >= 0 %}#2e7d32{% else %}#d9534f{% endif %}; font-weight: bold; margin-top: 0.5rem;">
+      R$ {{ net_profit }}
+    </p>
+    <span class="fersie-text-sm" style="color: #666;">Resultado (Vendas - Despesas)</span>
+  </div>
+
+  <div class="fersie-card">
+    <h3 class="fersie-heading-md">Contas a Receber</h3>
+    <p class="fersie-text-xl" style="color: #f0ad4e; font-weight: bold; margin-top: 0.5rem;">
+      R$ {{ pending_receivables }}
+    </p>
+    <span class="fersie-text-sm" style="color: #666;">Valores pendentes</span>
+  </div>
+
+  <div class="fersie-card">
+    <h3 class="fersie-heading-md">Taxas de Cartão (MDR)</h3>
+    <p class="fersie-text-xl" style="color: #0275d8; font-weight: bold; margin-top: 0.5rem;">
+      R$ {{ card_fees_total }}
+    </p>
+    <span class="fersie-text-sm" style="color: #666;">Total em taxas operadoras</span>
+  </div>
+</div>
+
+<!-- Dynamic Summary Tables -->
+<div style="margin-top: 2rem;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+    <h2 class="fersie-heading-lg">Últimas Vendas Realizadas</h2>
+    <a href="{% url 'financial:sales_list' %}" class="fersie-btn fersie-btn-sm fersie-btn-secondary">Ver Todas</a>
+  </div>
+  <table class="fersie-table">
+    <thead>
+      <tr>
+        <th>Código</th>
+        <th>Cliente</th>
+        <th>Tipo</th>
+        <th>Pagamento</th>
+        <th>Valor Bruto</th>
+        <th>Desconto</th>
+        <th>Valor Líquido</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for sale in recent_sales %}
+      <tr>
+        <td><strong>{{ sale.sale_code }}</strong></td>
+        <td>{{ sale.customer_name|default:"Cliente Balcão" }}</td>
+        <td><span class="fersie-badge fersie-badge-info">{{ sale.get_sale_type_display }}</span></td>
+        <td>{{ sale.get_payment_method_display }}</td>
+        <td>R$ {{ sale.gross_amount }}</td>
+        <td>R$ {{ sale.discount }}</td>
+        <td><strong>R$ {{ sale.net_amount }}</strong></td>
+        <td>
+          {% if sale.status == 'completed' %}
+            <span class="fersie-badge fersie-badge-success">Concluída</span>
+          {% else %}
+            <span class="fersie-badge fersie-badge-danger">Cancelada</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="8" style="text-align: center; padding: 1.5rem;">Nenhuma venda registrada ainda.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr class="fersie-totalizer-row">
+        <td colspan="4">TOTAL DAS VENDAS CONCLUÍDAS</td>
+        <td colspan="2">—</td>
+        <td>R$ {{ total_sales }}</td>
+        <td>—</td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+{% endblock %}

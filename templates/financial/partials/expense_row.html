@@ -1,0 +1,30 @@
+<tr id="expense-row-{{ expense.id }}">
+  <td style="text-align: center;">
+    <input type="checkbox" name="selected_ids" value="{{ expense.id }}" class="expense-checkbox">
+  </td>
+  <td><strong>{{ expense.description }}</strong></td>
+  <td><span class="fersie-badge fersie-badge-info">{{ expense.get_category_display }}</span></td>
+  <td>{{ expense.due_date|date:"d/m/Y" }}</td>
+  <td>{{ expense.payment_date|date:"d/m/Y"|default:"—" }}</td>
+  <td><strong>R$ {{ expense.amount }}</strong></td>
+  <td>
+    {% if expense.status == 'pago' %}
+      <span class="fersie-badge fersie-badge-success">Pago</span>
+    {% else %}
+      <span class="fersie-badge fersie-badge-warning">Pendente</span>
+    {% endif %}
+  </td>
+  <td>
+    {% if expense.status != 'pago' %}
+      <button type="button" class="fersie-btn fersie-btn-sm fersie-btn-gold"
+              hx-post="{% url 'financial:expense_mark_paid' expense.id %}"
+              hx-target="#expense-row-{{ expense.id }}"
+              hx-swap="outerHTML">
+        Marcar Pago
+      </button>
+    {% else %}
+      <span style="color: #666; font-size: 0.85rem;">—</span>
+    {% endif %}
+  </td>
+</tr>
+

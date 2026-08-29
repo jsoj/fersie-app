@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Nova Compra / Ingestão de Estoque — Fersie App{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+  <div style="margin-bottom: 2rem;">
+    <h1 class="fersie-heading-xl">Registrar Nova Compra / Ingestão</h1>
+    <p class="fersie-text-body">Cadastre o fornecedor e itens da nota fiscal. O estoque dos produtos selecionados será incrementado automaticamente.</p>
+  </div>
+
+  {% if error_message %}
+    <div class="fersie-card" style="background: #f8d7da; color: #721c24; padding: 1rem; margin-bottom: 1.5rem;">
+      <strong>⚠️ Erro:</strong> {{ error_message }}
+    </div>
+  {% endif %}
+
+  <!-- Quick Supplier Registration Accordion/Box -->
+  <details class="fersie-card" style="margin-bottom: 1.5rem;">
+    <summary style="cursor: pointer; font-weight: bold; font-size: 1.05rem;">+ Cadastrar Novo Fornecedor Rápido</summary>
+    <form method="POST" action="{% url 'financial:purchases_create' %}" style="margin-top: 1rem;">
+      {% csrf_token %}
+      <input type="hidden" name="create_supplier" value="1">
+      <div class="fersie-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <input type="text" name="supplier_name" placeholder="Nome / Razão Social" class="fersie-input" style="padding: 0.5rem;" required>
+        <input type="text" name="cnpj_cpf" placeholder="CNPJ / CPF" class="fersie-input" style="padding: 0.5rem;">
+        <input type="text" name="phone" placeholder="Telefone" class="fersie-input" style="padding: 0.5rem;">
+        <input type="email" name="email" placeholder="E-mail" class="fersie-input" style="padding: 0.5rem;">
+      </div>
+      <button type="submit" class="fersie-btn fersie-btn-primary" style="margin-top: 1rem;">Salvar Fornecedor</button>
+    </form>
+  </details>
+
+  <!-- Purchase Registration Form -->
+  <form method="POST" action="{% url 'financial:purchases_create' %}" class="fersie-card" style="padding: 2rem;">
+    {% csrf_token %}
+    <input type="hidden" name="create_purchase" value="1">
+
+    <div class="fersie-grid" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+      <div>
+        <label style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Fornecedor:</label>
+        <select name="supplier_id" class="fersie-select" style="width: 100%; padding: 0.6rem;" required>
+          <option value="">-- Selecione o Fornecedor --</option>
+          {% for supplier in suppliers %}
+            <option value="{{ supplier.id }}">{{ supplier.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Número da Nota Fiscal:</label>
+        <input type="text" name="invoice_number" placeholder="Ex: NF-10492" class="fersie-input" style="width: 100%; padding: 0.6rem;">
+      </div>
+
+      <div>
+        <label style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Status do Pagamento:</label>
+        <select name="status" class="fersie-select" style="width: 100%; padding: 0.6rem;">
+          <option value="pending">Pendente</option>
+          <option value="paid">Pago</option>
+        </select>
+      </div>
+    </div>
+
+    <h3 class="fersie-heading-md" style="margin-bottom: 1rem; border-bottom: 1px solid #ddd; padding-bottom: 0.5rem;">Itens da Compra (Incremento de Estoque)</h3>
+
+    <div id="purchase-items-container">
+      {% include 'financial/partials/purchase_item_row.html' %}
+    </div>
+
+    <div style="margin-top: 1.5rem;">
+      <label style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Observações:</label>
+      <textarea name="notes" rows="2" class="fersie-textarea" style="width: 100%; padding: 0.5rem;" placeholder="Observações adicionais..."></textarea>
+    </div>
+
+    <div style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem;">
+      <a href="{% url 'financial:purchases_list' %}" class="fersie-btn fersie-btn-secondary">Cancelar</a>
+      <button type="submit" class="fersie-btn fersie-btn-gold" style="padding: 0.75rem 2rem;">Confirmar Compra & Entrada de Estoque</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %}Pré-visualização da Etiqueta — Fersie App{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 1.5rem;">
+  <a href="{% url 'catalog:label_generator' %}" class="fersie-btn fersie-btn-outline">
+    ← Voltar ao Gerador de Etiquetas
+  </a>
+</div>
+
+{% include 'catalog/partials/label_preview_content.html' %}
+
+{% endblock %}

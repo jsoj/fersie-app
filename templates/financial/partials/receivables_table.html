@@ -1,0 +1,125 @@
+<div id="receivables-table-container">
+  <form id="receivables-bulk-form" 
+        hx-post="{% url 'financial:receivables_bulk_action' %}" 
+        hx-target="#receivables-table-container" 
+        hx-select="#receivables-table-container" 
+        style="margin-bottom: 0.75rem;">
+    {% csrf_token %}
+    <input type="hidden" name="q" value="{{ query }}">
+    <input type="hidden" name="status" value="{{ status_filter }}">
+    <input type="hidden" name="payment_method" value="{{ pm_filter }}">
+    <input type="hidden" name="sort" value="{{ current_sort }}">
+    <input type="hidden" name="page" value="{{ page_obj.number }}">
+
+    <div style="display: flex; gap: 0.5rem; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 0.75rem;">
+      <div style="display: flex; gap: 0.5rem; align-items: center;">
+        <select name="bulk_action" class="fersie-select" style="padding: 0.4rem 0.8rem; border-radius: 4px;">
+          <option value="">Ações em Massa...</option>
+          <option value="mark_paid">Marcar como Pago / Recebido</option>
+          <option value="mark_pending">Marcar como Pendente</option>
+          <option value="delete">Excluir Selecionadas</option>
+        </select>
+        <button type="submit" class="fersie-btn fersie-btn-secondary" style="padding: 0.4rem 0.8rem;">Aplicar</button>
+      </div>
+
+      <div>
+        <span class="fersie-text-body" style="font-size: 0.9rem;">
+          Registros: <strong>{{ total_count }}</strong> | Pendente: <strong>R$ {{ total_outstanding_amount }}</strong> | Recebido: <strong>R$ {{ total_received_amount }}</strong>
+        </span>
+      </div>
+    </div>
+
+    <table class="fersie-table">
+      <thead>
+        <tr>
+          <th style="width: 40px; text-align: center;">
+            <input type="checkbox" id="select-all-receivables" onclick="document.querySelectorAll('.receivable-checkbox').forEach(cb => cb.checked = this.checked)">
+          </th>
+          <th style="cursor: pointer;" 
+              hx-get="{% url 'financial:receivables_list' %}?q={{ query }}&status={{ status_filter }}&payment_method={{ pm_filter }}&sort={% if current_sort == 'customer_name' %}-customer_name{% else %}customer_name{% endif %}"
+              hx-target="#receivables-table-container" hx-select="#receivables-table-container">
+            Cliente / Origem
+            {% if current_sort == 'customer_name' %}▲{% elif current_sort == '-customer_name' %}▼{% endif %}
+          </th>
+          <th style="cursor: pointer;" 
+              hx-get="{% url 'financial:receivables_list' %}?q={{ query }}&status={{ status_filter }}&payment_method={{ pm_filter }}&sort={% if current_sort == 'description' %}-description{% else %}description{% endif %}"
+              hx-target="#receivables-table-container" hx-select="#receivables-table-container">
+            Descrição
+            {% if current_sort == 'description' %}▲{% elif current_sort == '-description' %}▼{% endif %}
+          </th>
+          <th>Forma Pagamento</th>
+          <th style="cursor: pointer;" 
+              hx-get="{% url 'financial:receivables_list' %}?q={{ query }}&status={{ status_filter }}&payment_method={{ pm_filter }}&sort={% if current_sort == 'due_date' %}-due_date{% else %}due_date{% endif %}"
+              hx-target="#receivables-table-container" hx-select="#receivables-table-container">
+            Data Vencimento
+            {% if current_sort == 'due_date' %}▲{% elif current_sort == '-due_date' %}▼{% endif %}
+          </th>
+          <th style="cursor: pointer;" 
+              hx-get="{% url 'financial:receivables_list' %}?q={{ query }}&status={{ status_filter }}&payment_method={{ pm_filter }}&sort={% if current_sort == 'total_amount' %}-total_amount{% else %}total_amount{% endif %}"
+              hx-target="#receivables-table-container" hx-select="#receivables-table-container">
+            Valor Total
+            {% if current_sort == 'total_amount' %}▲{% elif current_sort == '-total_amount' %}▼{% endif %}
+          </th>
+          <th style="cursor: pointer;" 
+              hx-get="{% url 'financial:receivables_list' %}?q={{ query }}&status={{ status_filter }}&payment_method={{ pm_filter }}&sort={% if current_sort == 'status' %}-status{% else %}status{% endif %}"
+              hx-target="#receivables-table-container" hx-select="#receivables-table-container">
+            Status
+            {% if current_sort == 'status' %}▲{% elif current_sort == '-status' %}▼{% endif %}
+          </th>
+          <th>Ação</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for rec in receivables %}
+          {% include 'financial/partials/receivable_row.html' with receivable=rec %}
+        {% empty %}
+        <tr>
+          <td colspan="8" style="text-align: center; padding: 2rem;">Nenhum recebível registrado.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr class="fersie-totalizer-row">
+          <td colspan="5">TOTAL RECEBÍVEIS (Pendente: R$ {{ total_outstanding_amount }} | Recebido: R$ {{ total_received_amount }})</td>
+          <td>R$ {{ total_amount }}</td>
+          <td colspan="2">—</td>
+        </tr>
+      </tfoot>
+    </table>
+  </form>
+
+  {% if page_obj.has_other_pages %}
+  <div class="fersie-pagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+    <span class="fersie-text-body" style="font-size: 0.85rem;">
+      Exibindo {{ page_obj.start_index }} a {{ page_obj.end_index }} de {{ page_obj.paginator.count }} recebíveis
+    </span>
+    <div style="display: flex; gap: 0.25rem;">
+      {% if page_obj.has_previous %}
+        <a href="#" 
+           hx-get="{% url 'financial:receivables_list' %}?page={{ page_obj.previous_page_number }}&q={{ query }}&status={{ status_filter }}&payment_method={{ pm_filter }}&sort={{ current_sort }}" 
+           hx-target="#receivables-table-container" hx-select="#receivables-table-container" 
+           class="fersie-btn fersie-btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">&laquo; Anterior</a>
+      {% endif %}
+
+      {% for p in page_obj.paginator.page_range %}
+        {% if p == page_obj.number %}
+          <span class="fersie-btn fersie-btn-gold" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">{{ p }}</span>
+        {% else %}
+          <a href="#" 
+             hx-get="{% url 'financial:receivables_list' %}?page={{ p }}&q={{ query }}&status={{ status_filter }}&payment_method={{ pm_filter }}&sort={{ current_sort }}" 
+             hx-target="#receivables-table-container" hx-select="#receivables-table-container" 
+             class="fersie-btn fersie-btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">{{ p }}</a>
+        {% endif %}
+      {% endfor %}
+
+      {% if page_obj.has_next %}
+        <a href="#" 
+           hx-get="{% url 'financial:receivables_list' %}?page={{ page_obj.next_page_number }}&q={{ query }}&status={{ status_filter }}&payment_method={{ pm_filter }}&sort={{ current_sort }}" 
+           hx-target="#receivables-table-container" hx-select="#receivables-table-container" 
+           class="fersie-btn fersie-btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">Próximo &raquo;</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+

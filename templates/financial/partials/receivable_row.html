@@ -1,0 +1,30 @@
+<tr id="receivable-row-{{ receivable.id }}">
+  <td style="text-align: center;">
+    <input type="checkbox" name="selected_ids" value="{{ receivable.id }}" class="receivable-checkbox">
+  </td>
+  <td><strong>{{ receivable.customer_name|default:"Cliente Balcão" }}</strong></td>
+  <td>{{ receivable.description|default:"—" }}</td>
+  <td>{{ receivable.payment_method|default:"—" }}</td>
+  <td>{{ receivable.due_date|date:"d/m/Y"|default:"—" }}</td>
+  <td><strong>R$ {{ receivable.total_amount }}</strong></td>
+  <td>
+    {% if receivable.status == 'pago' %}
+      <span class="fersie-badge fersie-badge-success">Pago / Recebido</span>
+    {% else %}
+      <span class="fersie-badge fersie-badge-warning">Pendente</span>
+    {% endif %}
+  </td>
+  <td>
+    {% if receivable.status != 'pago' %}
+      <button type="button" class="fersie-btn fersie-btn-sm fersie-btn-gold"
+              hx-post="{% url 'financial:receivable_mark_paid' receivable.id %}"
+              hx-target="#receivable-row-{{ receivable.id }}"
+              hx-swap="outerHTML">
+        Marcar Recebido
+      </button>
+    {% else %}
+      <span style="color: #666; font-size: 0.85rem;">Recebido em {{ receivable.received_date|date:"d/m/Y" }}</span>
+    {% endif %}
+  </td>
+</tr>
+

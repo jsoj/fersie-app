@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Contas a Receber — Fersie App{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+  <h1 class="fersie-heading-xl">Contas a Receber & Repasses</h1>
+  <p class="fersie-text-body">Acompanhamento dos valores a receber de clientes e repasses de cartão de crédito/débito.</p>
+
+  <div style="margin-top: 1.5rem; display: flex; gap: 1rem; align-items: center; background: var(--fersie-tailoring-cream, #f9f6f0); padding: 1rem; border-radius: 8px; flex-wrap: wrap;">
+    <input type="text" name="q" value="{{ query }}" placeholder="Buscar por cliente ou descrição..." 
+           class="fersie-input" style="padding: 0.5rem 1rem; min-width: 240px; flex: 2;"
+           hx-get="{% url 'financial:receivables_list' %}" 
+           hx-trigger="keyup changed delay:300ms, search" 
+           hx-target="#receivables-table-container"
+           hx-select="#receivables-table-container"
+           hx-include="[name='status'], [name='payment_method'], [name='sort']">
+    
+    <select name="status" class="fersie-select" style="padding: 0.5rem; flex: 1;" 
+            hx-get="{% url 'financial:receivables_list' %}" hx-trigger="change" hx-target="#receivables-table-container" hx-select="#receivables-table-container"
+            hx-include="[name='q'], [name='payment_method'], [name='sort']">
+      <option value="">Todos os Status</option>
+      <option value="pendente" {% if status_filter == 'pendente' %}selected{% endif %}>Pendente</option>
+      <option value="pago" {% if status_filter == 'pago' %}selected{% endif %}>Pago / Recebido</option>
+    </select>
+
+    <select name="payment_method" class="fersie-select" style="padding: 0.5rem; flex: 1;" 
+            hx-get="{% url 'financial:receivables_list' %}" hx-trigger="change" hx-target="#receivables-table-container" hx-select="#receivables-table-container"
+            hx-include="[name='q'], [name='status'], [name='sort']">
+      <option value="">Formas de Pagamento</option>
+      <option value="dinheiro" {% if pm_filter == 'dinheiro' %}selected{% endif %}>Dinheiro</option>
+      <option value="pix" {% if pm_filter == 'pix' %}selected{% endif %}>PIX</option>
+      <option value="cartao_credito" {% if pm_filter == 'cartao_credito' %}selected{% endif %}>Cartão de Crédito</option>
+      <option value="cartao_debito" {% if pm_filter == 'cartao_debito' %}selected{% endif %}>Cartão de Débito</option>
+      <option value="boleto" {% if pm_filter == 'boleto' %}selected{% endif %}>Boleto Bancário</option>
+    </select>
+  </div>
+
+</div>
+
+<div id="receivables-table-container">
+  {% include 'financial/partials/receivables_table.html' %}
+</div>
+{% endblock %}

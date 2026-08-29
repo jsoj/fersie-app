@@ -1,0 +1,130 @@
+<div id="expenses-table-container">
+  <form id="expenses-bulk-form" 
+        hx-post="{% url 'financial:expenses_bulk_action' %}" 
+        hx-target="#expenses-table-container" 
+        hx-select="#expenses-table-container" 
+        style="margin-bottom: 0.75rem;">
+    {% csrf_token %}
+    <input type="hidden" name="q" value="{{ query }}">
+    <input type="hidden" name="category" value="{{ category_filter }}">
+    <input type="hidden" name="status" value="{{ status_filter }}">
+    <input type="hidden" name="sort" value="{{ current_sort }}">
+    <input type="hidden" name="page" value="{{ page_obj.number }}">
+
+    <div style="display: flex; gap: 0.5rem; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 0.75rem;">
+      <div style="display: flex; gap: 0.5rem; align-items: center;">
+        <select name="bulk_action" class="fersie-select" style="padding: 0.4rem 0.8rem; border-radius: 4px;">
+          <option value="">Ações em Massa...</option>
+          <option value="mark_paid">Marcar como Pago</option>
+          <option value="mark_pending">Marcar como Pendente</option>
+          <option value="delete">Excluir Selecionadas</option>
+        </select>
+        <button type="submit" class="fersie-btn fersie-btn-secondary" style="padding: 0.4rem 0.8rem;">Aplicar</button>
+      </div>
+
+      <div>
+        <span class="fersie-text-body" style="font-size: 0.9rem;">
+          Despesas: <strong>{{ total_count }}</strong> | Total Despesas: <strong>R$ {{ total_expense_amount }}</strong>
+        </span>
+      </div>
+    </div>
+
+    <table class="fersie-table">
+      <thead>
+        <tr>
+          <th style="width: 40px; text-align: center;">
+            <input type="checkbox" id="select-all-expenses" onclick="document.querySelectorAll('.expense-checkbox').forEach(cb => cb.checked = this.checked)">
+          </th>
+          <th style="cursor: pointer;" 
+              hx-get="{% url 'financial:expenses_list' %}?q={{ query }}&category={{ category_filter }}&status={{ status_filter }}&sort={% if current_sort == 'description' %}-description{% else %}description{% endif %}"
+              hx-target="#expenses-table-container" hx-select="#expenses-table-container">
+            Descrição
+            {% if current_sort == 'description' %}▲{% elif current_sort == '-description' %}▼{% endif %}
+          </th>
+          <th style="cursor: pointer;" 
+              hx-get="{% url 'financial:expenses_list' %}?q={{ query }}&category={{ category_filter }}&status={{ status_filter }}&sort={% if current_sort == 'category' %}-category{% else %}category{% endif %}"
+              hx-target="#expenses-table-container" hx-select="#expenses-table-container">
+            Categoria
+            {% if current_sort == 'category' %}▲{% elif current_sort == '-category' %}▼{% endif %}
+          </th>
+          <th style="cursor: pointer;" 
+              hx-get="{% url 'financial:expenses_list' %}?q={{ query }}&category={{ category_filter }}&status={{ status_filter }}&sort={% if current_sort == 'due_date' %}-due_date{% else %}due_date{% endif %}"
+              hx-target="#expenses-table-container" hx-select="#expenses-table-container">
+            Vencimento
+            {% if current_sort == 'due_date' %}▲{% elif current_sort == '-due_date' %}▼{% endif %}
+          </th>
+          <th style="cursor: pointer;" 
+              hx-get="{% url 'financial:expenses_list' %}?q={{ query }}&category={{ category_filter }}&status={{ status_filter }}&sort={% if current_sort == 'payment_date' %}-payment_date{% else %}payment_date{% endif %}"
+              hx-target="#expenses-table-container" hx-select="#expenses-table-container">
+            Pagamento
+            {% if current_sort == 'payment_date' %}▲{% elif current_sort == '-payment_date' %}▼{% endif %}
+          </th>
+          <th style="cursor: pointer;" 
+              hx-get="{% url 'financial:expenses_list' %}?q={{ query }}&category={{ category_filter }}&status={{ status_filter }}&sort={% if current_sort == 'amount' %}-amount{% else %}amount{% endif %}"
+              hx-target="#expenses-table-container" hx-select="#expenses-table-container">
+            Valor
+            {% if current_sort == 'amount' %}▲{% elif current_sort == '-amount' %}▼{% endif %}
+          </th>
+          <th style="cursor: pointer;" 
+              hx-get="{% url 'financial:expenses_list' %}?q={{ query }}&category={{ category_filter }}&status={{ status_filter }}&sort={% if current_sort == 'status' %}-status{% else %}status{% endif %}"
+              hx-target="#expenses-table-container" hx-select="#expenses-table-container">
+            Status
+            {% if current_sort == 'status' %}▲{% elif current_sort == '-status' %}▼{% endif %}
+          </th>
+          <th>Ação</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for expense in expenses %}
+          {% include 'financial/partials/expense_row.html' with expense=expense %}
+        {% empty %}
+        <tr>
+          <td colspan="8" style="text-align: center; padding: 2rem;">Nenhuma despesa cadastrada.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr class="fersie-totalizer-row">
+          <td colspan="5">TOTAL DAS DESPESAS ({{ total_count }} registros)</td>
+          <td>R$ {{ total_expense_amount }}</td>
+          <td colspan="2">—</td>
+        </tr>
+      </tfoot>
+    </table>
+  </form>
+
+  {% if page_obj.has_other_pages %}
+  <div class="fersie-pagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+    <span class="fersie-text-body" style="font-size: 0.85rem;">
+      Exibindo {{ page_obj.start_index }} a {{ page_obj.end_index }} de {{ page_obj.paginator.count }} despesas
+    </span>
+    <div style="display: flex; gap: 0.25rem;">
+      {% if page_obj.has_previous %}
+        <a href="#" 
+           hx-get="{% url 'financial:expenses_list' %}?page={{ page_obj.previous_page_number }}&q={{ query }}&category={{ category_filter }}&status={{ status_filter }}&sort={{ current_sort }}" 
+           hx-target="#expenses-table-container" hx-select="#expenses-table-container" 
+           class="fersie-btn fersie-btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">&laquo; Anterior</a>
+      {% endif %}
+
+      {% for p in page_obj.paginator.page_range %}
+        {% if p == page_obj.number %}
+          <span class="fersie-btn fersie-btn-gold" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">{{ p }}</span>
+        {% else %}
+          <a href="#" 
+             hx-get="{% url 'financial:expenses_list' %}?page={{ p }}&q={{ query }}&category={{ category_filter }}&status={{ status_filter }}&sort={{ current_sort }}" 
+             hx-target="#expenses-table-container" hx-select="#expenses-table-container" 
+             class="fersie-btn fersie-btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">{{ p }}</a>
+        {% endif %}
+      {% endfor %}
+
+      {% if page_obj.has_next %}
+        <a href="#" 
+           hx-get="{% url 'financial:expenses_list' %}?page={{ page_obj.next_page_number }}&q={{ query }}&category={{ category_filter }}&status={{ status_filter }}&sort={{ current_sort }}" 
+           hx-target="#expenses-table-container" hx-select="#expenses-table-container" 
+           class="fersie-btn fersie-btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">Próximo &raquo;</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+

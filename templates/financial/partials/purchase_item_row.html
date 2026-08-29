@@ -1,0 +1,20 @@
+<div class="purchase-item-row" style="display: flex; gap: 1rem; align-items: center; margin-bottom: 0.75rem; background: #fff; padding: 0.75rem; border: 1px solid #eee; border-radius: 6px;">
+  <div style="flex: 2;">
+    <select name="product_id" class="fersie-select" style="width: 100%; padding: 0.5rem;" required>
+      <option value="">-- Selecione o Produto --</option>
+      {% for product in products %}
+        <option value="{{ product.id }}">
+          [{{ product.cod_unico }}] {{ product.descricao }} — Custo Atual: R$ {{ product.preco_custo }} (Estoque: {{ product.quantidade }})
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div style="flex: 1;">
+    <input type="number" name="quantity" value="1" min="1" class="fersie-input" placeholder="Qtd Comprada" style="width: 100%; padding: 0.5rem;" required>
+  </div>
+
+  <div style="flex: 1;">
+    <input type="number" step="0.01" min="0" name="unit_cost" class="fersie-input" placeholder="Custo Unit. (R$)" style="width: 100%; padding: 0.5rem;">
+  </div>
+</div>

@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block title %}Checkout de Venda (PDV) — Fersie App{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+  <div style="margin-bottom: 2rem;">
+    <h1 class="fersie-heading-xl">Checkout de Venda (PDV)</h1>
+    <p class="fersie-text-body">Selecione os produtos, quantidade e forma de pagamento. A dedução de estoque ocorre automaticamente.</p>
+  </div>
+
+  <div id="checkout-error-container">
+    {% if error_message %}
+      {% include 'financial/partials/sale_error.html' %}
+    {% endif %}
+  </div>
+
+  <form method="POST" action="{% url 'financial:sales_create' %}" class="fersie-card" style="padding: 2rem;">
+    {% csrf_token %}
+    
+    <div class="fersie-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+      <div>
+        <label style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Nome do Cliente:</label>
+        <input type="text" name="customer_name" class="fersie-input" placeholder="Ex: Maria Silva" style="width: 100%; padding: 0.6rem;">
+      </div>
+
+      <div>
+        <label style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Canal de Venda:</label>
+        <select name="sale_type" class="fersie-select" style="width: 100%; padding: 0.6rem;">
+          <option value="balcao">Balcão / Loja Física</option>
+          <option value="online">Venda Online / WhatsApp</option>
+        </select>
+      </div>
+    </div>
+
+    <h3 class="fersie-heading-md" style="margin-bottom: 1rem; border-bottom: 1px solid #ddd; padding-bottom: 0.5rem;">Itens da Venda</h3>
+
+    <div id="cart-items-container">
+      {% include 'financial/partials/sale_item_row.html' with row_index=0 %}
+    </div>
+
+    <button type="button" class="fersie-btn fersie-btn-secondary" style="margin-top: 1rem;"
+            hx-get="{% url 'financial:sales_add_item_row' %}?row_index=1"
+            hx-target="#cart-items-container"
+            hx-swap="beforeend">
+      + Adicionar Outro Produto
+    </button>
+
+    <h3 class="fersie-heading-md" style="margin-top: 2rem; margin-bottom: 1rem; border-bottom: 1px solid #ddd; padding-bottom: 0.5rem;">Pagamento & Conciliação</h3>
+
+    <div class="fersie-grid" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+      <div>
+        <label style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Forma de Pagamento:</label>
+        <select name="payment_method" id="payment-method-select" class="fersie-select" style="width: 100%; padding: 0.6rem;" onchange="toggleCardOptions(this.value)">
+          <option value="dinheiro">Dinheiro</option>
+          <option value="pix">PIX</option>
+          <option value="cartao_credito">Cartão de Crédito</option>
+          <option value="cartao_debito">Cartão de Débito</option>
+        </select>
+      </div>
+
+      <div>
+        <label style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Desconto (R$):</label>
+        <input type="number" step="0.01" min="0" name="discount" value="0.00" class="fersie-input" style="width: 100%; padding: 0.6rem;">
+      </div>
+
+      <div id="card-brand-box" style="display: none;">
+        <label style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Bandeira Cartão:</label>
+        <select name="card_brand" class="fersie-select" style="width: 100%; padding: 0.6rem;">
+          <option value="visa">Visa</option>
+          <option value="mastercard">Mastercard</option>
+          <option value="elo">Elo</option>
+          <option value="outras">Outras</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="card-installments-box" class="fersie-grid" style="display: none; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+      <div>
+        <label style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Tipo de Transação:</label>
+        <select name="transaction_type" class="fersie-select" style="width: 100%; padding: 0.6rem;">
+          <option value="debito">Débito (Taxa ~1.99%)</option>
+          <option value="credito_avista">Crédito à Vista (Taxa ~3.49%)</option>
+          <option value="credito_parcelado">Crédito Parcelado (Taxa ~4.99%)</option>
+        </select>
+      </div>
+
+      <div>
+        <label style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Número de Parcelas:</label>
+        <input type="number" name="installment_count" value="1" min="1" max="12" class="fersie-input" style="width: 100%; padding: 0.6rem;">
+      </div>
+    </div>
+
+    <div style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem;">
+      <a href="{% url 'financial:sales_list' %}" class="fersie-btn fersie-btn-secondary">Cancelar</a>
+      <button type="submit" class="fersie-btn fersie-btn-gold" style="padding: 0.75rem 2rem; font-size: 1.1rem;">Finalizar Venda</button>
+    </div>
+  </form>
+</div>
+
+<script>
+function toggleCardOptions(val) {
+  const brandBox = document.getElementById('card-brand-box');
+  const instBox = document.getElementById('card-installments-box');
+  if (val === 'cartao_credito' || val === 'cartao_debito') {
+    brandBox.style.display = 'block';
+    instBox.style.display = 'grid';
+  } else {
+    brandBox.style.display = 'none';
+    instBox.style.display = 'none';
+  }
+}
+</script>
+{% endblock %}

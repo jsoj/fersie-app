@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Despesas Operacionais — Fersie App{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+  <h1 class="fersie-heading-xl">Despesas Operacionais</h1>
+  <p class="fersie-text-body">Lançamento de despesas da loja por categoria e controle de vencimentos.</p>
+
+  <!-- Add Expense Form Accordion -->
+  <details class="fersie-card" style="margin-top: 1.5rem; padding: 1.5rem;" open>
+    <summary style="cursor: pointer; font-weight: bold; font-size: 1.1rem;">+ Lançar Nova Despesa Operacional</summary>
+    <form method="POST" action="{% url 'financial:expenses_list' %}" style="margin-top: 1rem;">
+      {% csrf_token %}
+      <div class="fersie-grid" style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 1rem;">
+        <div>
+          <label style="font-size: 0.9rem; font-weight: bold; display: block;">Descrição:</label>
+          <input type="text" name="description" placeholder="Ex: Aluguel da Loja" class="fersie-input" style="width: 100%; padding: 0.5rem;" required>
+        </div>
+
+        <div>
+          <label style="font-size: 0.9rem; font-weight: bold; display: block;">Categoria:</label>
+          <select name="category" class="fersie-select" style="width: 100%; padding: 0.5rem;">
+            {% for code, label in categories %}
+              <option value="{{ code }}">{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label style="font-size: 0.9rem; font-weight: bold; display: block;">Valor (R$):</label>
+          <input type="number" step="0.01" min="0.01" name="amount" placeholder="0.00" class="fersie-input" style="width: 100%; padding: 0.5rem;" required>
+        </div>
+
+        <div>
+          <label style="font-size: 0.9rem; font-weight: bold; display: block;">Data Vencimento:</label>
+          <input type="date" name="due_date" class="fersie-input" style="width: 100%; padding: 0.5rem;" required>
+        </div>
+      </div>
+
+      <div style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <label style="font-weight: bold; margin-right: 0.5rem;">Status:</label>
+          <select name="status" class="fersie-select" style="padding: 0.4rem;">
+            <option value="pendente">Pendente</option>
+            <option value="pago">Pago</option>
+          </select>
+        </div>
+        <button type="submit" class="fersie-btn fersie-btn-gold">Salvar Despesa</button>
+      </div>
+    </form>
+  </details>
+</div>
+
+<!-- Filters -->
+<div style="margin-bottom: 1.5rem; display: flex; gap: 1rem; align-items: center; background: var(--fersie-tailoring-cream, #f9f6f0); padding: 1rem; border-radius: 8px; flex-wrap: wrap;">
+  <input type="text" name="q" value="{{ query }}" placeholder="Buscar por descrição ou notas..." 
+         class="fersie-input" style="padding: 0.5rem 1rem; min-width: 240px; flex: 2;"
+         hx-get="{% url 'financial:expenses_list' %}" 
+         hx-trigger="keyup changed delay:300ms, search" 
+         hx-target="#expenses-table-container"
+         hx-select="#expenses-table-container"
+         hx-include="[name='category'], [name='status'], [name='sort']">
+
+  <select name="category" class="fersie-select" style="padding: 0.5rem; flex: 1;" 
+          hx-get="{% url 'financial:expenses_list' %}" hx-trigger="change" hx-target="#expenses-table-container" hx-select="#expenses-table-container"
+          hx-include="[name='q'], [name='status'], [name='sort']">
+    <option value="">Todas as Categorias</option>
+    {% for code, label in categories %}
+      <option value="{{ code }}" {% if category_filter == code %}selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+
+  <select name="status" class="fersie-select" style="padding: 0.5rem; flex: 1;" 
+          hx-get="{% url 'financial:expenses_list' %}" hx-trigger="change" hx-target="#expenses-table-container" hx-select="#expenses-table-container"
+          hx-include="[name='q'], [name='category'], [name='sort']">
+    <option value="">Todos os Status</option>
+    <option value="pendente" {% if status_filter == 'pendente' %}selected{% endif %}>Pendente</option>
+    <option value="pago" {% if status_filter == 'pago' %}selected{% endif %}>Pago</option>
+  </select>
+</div>
+
+<div id="expenses-table-container">
+  {% include 'financial/partials/expenses_table.html' %}
+</div>
+{% endblock %}
+

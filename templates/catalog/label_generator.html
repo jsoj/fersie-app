@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}Gerador de Etiquetas Elgin L42PRO — Fersie App{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <h1 class="fersie-heading-xl">Impressão de Etiquetas — Elgin L42PRO FULL</h1>
+    <p class="fersie-text-body">Gere comandos TSPL / EPL / ZPL ou imprima folhas de etiquetas adesivas 50x30mm com a marca Fersie.</p>
+  </div>
+  <div>
+    <a href="{% url 'catalog:visual_catalog' %}" class="fersie-btn fersie-btn-outline">
+      ← Voltar ao Catálogo
+    </a>
+  </div>
+</div>
+
+<form id="label-config-form" method="POST" action="{% url 'catalog:label_preview' %}"
+      hx-post="{% url 'catalog:label_preview' %}" hx-target="#label-preview-container">
+  {% csrf_token %}
+
+  <div class="fersie-grid" style="grid-template-columns: 1fr 2fr; gap: 1.5rem; align-items: start;">
+    <!-- Printer Configurations Side Panel -->
+    <div class="fersie-card">
+      <h3 class="fersie-heading-md" style="margin-top: 0;">⚙️ Configuração da Impressora</h3>
+
+      <div style="margin-bottom: 1rem;">
+        <label style="display: block; font-weight: 600; margin-bottom: 0.25rem;">Linguagem / Tipo de Impressora</label>
+        <select name="printer_type" class="fersie-form-select" style="width: 100%;">
+          <option value="ELGIN_L42PRO" selected>Elgin L42PRO FULL (TSPL)</option>
+          <option value="EPL">Elgin / Zebra EPL2</option>
+          <option value="ZPL">Zebra / Elgin ZPL II</option>
+          <option value="HTML_SHEET">Folha Impressa (HTML / PDF)</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom: 1.5rem;">
+        <label style="display: block; font-weight: 600; margin-bottom: 0.25rem;">Dimensão da Etiqueta Adesiva</label>
+        <select name="label_format" class="fersie-form-select" style="width: 100%;">
+          <option value="50x30" selected>50 mm x 30 mm (Padrão Fersie)</option>
+          <option value="40x25">40 mm x 25 mm (Compacto)</option>
+        </select>
+      </div>
+
+      <button type="submit" class="fersie-btn fersie-btn-primary" style="width: 100%;">
+        🔄 Atualizar Pré-visualização
+      </button>
+    </div>
+
+    <!-- Product Selection Table -->
+    <div class="fersie-card">
+      <h3 class="fersie-heading-md" style="margin-top: 0;">📦 Selecionar Produtos e Quantidades</h3>
+
+      <div style="overflow-x: auto;">
+        <table class="fersie-table">
+          <thead>
+            <tr>
+              <th style="width: 40px; text-align: center;">
+                <input type="checkbox" id="select-all-products" onclick="toggleSelectAll(this)">
+              </th>
+              <th>Código</th>
+              <th>Descrição</th>
+              <th>Preço</th>
+              <th style="width: 100px;">Qtd Cóp.</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for product in products %}
+              <tr>
+                <td style="text-align: center;">
+                  <input type="checkbox" name="product_ids" value="{{ product.id }}" class="product-checkbox" checked>
+                </td>
+                <td style="font-family: monospace; font-weight: bold;">{{ product.cod_unico }}</td>
+                <td>{{ product.descricao }} ({{ product.tamanho|default:"U" }}/{{ product.cor|default:"Variado" }})</td>
+                <td>R$ {{ product.preco_venda|floatformat:2 }}</td>
+                <td>
+                  <input type="number" name="qty_{{ product.id }}" value="1" min="1" max="100" class="fersie-form-control" style="width: 70px; padding: 0.25rem;">
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="5" style="text-align: center;">Nenhum produto cadastrado no estoque.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</form>
+
+<!-- Label Preview Section -->
+<div id="label-preview-container" style="margin-top: 2rem;">
+  <!-- Preview loads here via HTMX -->
+</div>
+
+<script>
+  function toggleSelectAll(master) {
+    const checkboxes = document.querySelectorAll('.product-checkbox');
+    checkboxes.forEach(cb => cb.checked = master.checked);
+  }
+
+  // Auto load preview on DOM load
+  document.addEventListener("DOMContentLoaded", function() {
+    htmx.trigger('#label-config-form', 'submit');
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,140 @@
+:root {
+  /* HSL Tailoring Palette */
+  --fersie-gold: hsl(43, 62%, 52%);
+  --fersie-gold-hover: hsl(43, 62%, 45%);
+  --fersie-tailoring-charcoal: hsl(210, 15%, 15%);
+  --fersie-tailoring-beige: hsl(36, 33%, 94%);
+  --fersie-tailoring-burgundy: hsl(345, 60%, 28%);
+  
+  /* Neutral Palette */
+  --fersie-neutral-100: hsl(0, 0%, 98%);
+  --fersie-neutral-200: hsl(0, 0%, 93%);
+  --fersie-neutral-300: hsl(0, 0%, 86%);
+  --fersie-neutral-600: hsl(0, 0%, 45%);
+  --fersie-neutral-800: hsl(0, 0%, 20%);
+  --fersie-neutral-900: hsl(0, 0%, 10%);
+
+  /* Typography */
+  --fersie-font-serif: "Playfair Display", Georgia, serif;
+  --fersie-font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  /* Spacing */
+  --fersie-space-xs: 0.25rem;
+  --fersie-space-sm: 0.5rem;
+  --fersie-space-md: 1rem;
+  --fersie-space-lg: 1.5rem;
+  --fersie-space-xl: 2.5rem;
+
+  /* Borders & Shadows */
+  --fersie-radius-sm: 4px;
+  --fersie-radius-md: 8px;
+  --fersie-radius-lg: 12px;
+  --fersie-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --fersie-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.fersie-heading-xl {
+  font-family: var(--fersie-font-serif);
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--fersie-tailoring-charcoal);
+  line-height: 1.2;
+}
+
+.fersie-heading-lg {
+  font-family: var(--fersie-font-serif);
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--fersie-tailoring-charcoal);
+  line-height: 1.3;
+}
+
+.fersie-heading-md {
+  font-family: var(--fersie-font-serif);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--fersie-tailoring-charcoal);
+}
+
+.fersie-text-body {
+  font-family: var(--fersie-font-sans);
+  font-size: 1rem;
+  color: var(--fersie-neutral-800);
+  line-height: 1.6;
+}
+
+.fersie-text-sm {
+  font-family: var(--fersie-font-sans);
+  font-size: 0.875rem;
+  color: var(--fersie-neutral-600);
+}
+
+.fersie-text-gold {
+  color: var(--fersie-gold);
+}
+
+.fersie-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.625rem 1.25rem;
+  font-family: var(--fersie-font-sans);
+  font-weight: 600;
+  border-radius: var(--fersie-radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  text-decoration: none;
+}
+
+.fersie-btn-primary {
+  background-color: var(--fersie-gold);
+  color: var(--fersie-tailoring-charcoal);
+}
+
+.fersie-btn-primary:hover {
+  background-color: var(--fersie-gold-hover);
+}
+
+.fersie-card {
+  background-color: #fff;
+  border-radius: var(--fersie-radius-md);
+  border: 1px solid var(--fersie-neutral-300);
+  box-shadow: var(--fersie-shadow-sm);
+  padding: var(--fersie-space-lg);
+}
+
+.fersie-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: var(--fersie-radius-sm);
+  background-color: var(--fersie-tailoring-beige);
+  color: var(--fersie-tailoring-charcoal);
+}
+
+.fersie-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--fersie-font-sans);
+}
+
+.fersie-table th,
+.fersie-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--fersie-neutral-300);
+  text-align: left;
+}
+
+.fersie-table th {
+  background-color: var(--fersie-tailoring-beige);
+  font-weight: 600;
+  color: var(--fersie-tailoring-charcoal);
+}
+
+.fersie-totalizer-row {
+  background-color: var(--fersie-neutral-100);
+  font-weight: 700;
+  border-top: 2px solid var(--fersie-tailoring-charcoal);
+}

@@ -1,0 +1,153 @@
+<div id="reconciliation-table-container">
+  <form id="reconciliation-bulk-form" 
+        hx-post="{% url 'financial:reconciliation_bulk_action' %}" 
+        hx-target="#reconciliation-table-container" 
+        hx-select="#reconciliation-table-container" 
+        style="margin-bottom: 0.75rem;">
+    {% csrf_token %}
+    <input type="hidden" name="q" value="{{ query }}">
+    <input type="hidden" name="status" value="{{ status_filter }}">
+    <input type="hidden" name="brand" value="{{ brand_filter }}">
+    <input type="hidden" name="transaction_type" value="{{ tx_type_filter }}">
+    <input type="hidden" name="sort" value="{{ current_sort }}">
+    <input type="hidden" name="page" value="{{ page_obj.number }}">
+
+    <div style="display: flex; gap: 0.5rem; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 0.75rem;">
+      <div style="display: flex; gap: 0.5rem; align-items: center;">
+        <select name="bulk_action" class="fersie-select" style="padding: 0.4rem 0.8rem; border-radius: 4px;">
+          <option value="">Ações em Massa...</option>
+          <option value="conciliado">Marcar como Conciliado</option>
+          <option value="pendente">Marcar como Pendente</option>
+          <option value="divergente">Marcar como Divergente</option>
+          <option value="delete">Excluir Selecionadas</option>
+        </select>
+        <button type="submit" class="fersie-btn fersie-btn-secondary" style="padding: 0.4rem 0.8rem;">Aplicar</button>
+      </div>
+
+      <div>
+        <span class="fersie-text-body" style="font-size: 0.9rem;">
+          Transações: <strong>{{ total_count }}</strong> | Vendas Brutas: <strong>R$ {{ total_gross_sales }}</strong> | Taxas MDR: <strong>R$ {{ total_mdr_fees }}</strong> | Líquido: <strong>R$ {{ total_net_amount }}</strong>
+        </span>
+      </div>
+    </div>
+
+    <table class="fersie-table">
+      <thead>
+        <tr>
+          <th style="width: 40px; text-align: center;">
+            <input type="checkbox" id="select-all-rec" onclick="document.querySelectorAll('.rec-checkbox').forEach(cb => cb.checked = this.checked)">
+          </th>
+          <th style="cursor: pointer;" 
+              hx-get="{% url 'financial:reconciliation_list' %}?q={{ query }}&status={{ status_filter }}&brand={{ brand_filter }}&transaction_type={{ tx_type_filter }}&sort={% if current_sort == 'sale__sale_code' %}-sale__sale_code{% else %}sale__sale_code{% endif %}"
+              hx-target="#reconciliation-table-container" hx-select="#reconciliation-table-container">
+            Venda
+            {% if current_sort == 'sale__sale_code' %}▲{% elif current_sort == '-sale__sale_code' %}▼{% endif %}
+          </th>
+          <th style="cursor: pointer;" 
+              hx-get="{% url 'financial:reconciliation_list' %}?q={{ query }}&status={{ status_filter }}&brand={{ brand_filter }}&transaction_type={{ tx_type_filter }}&sort={% if current_sort == 'card_brand' %}-card_brand{% else %}card_brand{% endif %}"
+              hx-target="#reconciliation-table-container" hx-select="#reconciliation-table-container">
+            Bandeira
+            {% if current_sort == 'card_brand' %}▲{% elif current_sort == '-card_brand' %}▼{% endif %}
+          </th>
+          <th style="cursor: pointer;" 
+              hx-get="{% url 'financial:reconciliation_list' %}?q={{ query }}&status={{ status_filter }}&brand={{ brand_filter }}&transaction_type={{ tx_type_filter }}&sort={% if current_sort == 'transaction_type' %}-transaction_type{% else %}transaction_type{% endif %}"
+              hx-target="#reconciliation-table-container" hx-select="#reconciliation-table-container">
+            Tipo Transação
+            {% if current_sort == 'transaction_type' %}▲{% elif current_sort == '-transaction_type' %}▼{% endif %}
+          </th>
+          <th style="cursor: pointer;" 
+              hx-get="{% url 'financial:reconciliation_list' %}?q={{ query }}&status={{ status_filter }}&brand={{ brand_filter }}&transaction_type={{ tx_type_filter }}&sort={% if current_sort == 'gross_amount' %}-gross_amount{% else %}gross_amount{% endif %}"
+              hx-target="#reconciliation-table-container" hx-select="#reconciliation-table-container">
+            Valor Bruto
+            {% if current_sort == 'gross_amount' %}▲{% elif current_sort == '-gross_amount' %}▼{% endif %}
+          </th>
+          <th style="cursor: pointer;" 
+              hx-get="{% url 'financial:reconciliation_list' %}?q={{ query }}&status={{ status_filter }}&brand={{ brand_filter }}&transaction_type={{ tx_type_filter }}&sort={% if current_sort == 'fee_percentage' %}-fee_percentage{% else %}fee_percentage{% endif %}"
+              hx-target="#reconciliation-table-container" hx-select="#reconciliation-table-container">
+            Taxa MDR (%)
+            {% if current_sort == 'fee_percentage' %}▲{% elif current_sort == '-fee_percentage' %}▼{% endif %}
+          </th>
+          <th style="cursor: pointer;" 
+              hx-get="{% url 'financial:reconciliation_list' %}?q={{ query }}&status={{ status_filter }}&brand={{ brand_filter }}&transaction_type={{ tx_type_filter }}&sort={% if current_sort == 'fee_amount' %}-fee_amount{% else %}fee_amount{% endif %}"
+              hx-target="#reconciliation-table-container" hx-select="#reconciliation-table-container">
+            Taxa (R$)
+            {% if current_sort == 'fee_amount' %}▲{% elif current_sort == '-fee_amount' %}▼{% endif %}
+          </th>
+          <th style="cursor: pointer;" 
+              hx-get="{% url 'financial:reconciliation_list' %}?q={{ query }}&status={{ status_filter }}&brand={{ brand_filter }}&transaction_type={{ tx_type_filter }}&sort={% if current_sort == 'net_amount' %}-net_amount{% else %}net_amount{% endif %}"
+              hx-target="#reconciliation-table-container" hx-select="#reconciliation-table-container">
+            Valor Líquido
+            {% if current_sort == 'net_amount' %}▲{% elif current_sort == '-net_amount' %}▼{% endif %}
+          </th>
+          <th style="cursor: pointer;" 
+              hx-get="{% url 'financial:reconciliation_list' %}?q={{ query }}&status={{ status_filter }}&brand={{ brand_filter }}&transaction_type={{ tx_type_filter }}&sort={% if current_sort == 'expected_settlement_date' %}-expected_settlement_date{% else %}expected_settlement_date{% endif %}"
+              hx-target="#reconciliation-table-container" hx-select="#reconciliation-table-container">
+            Previsão Repasse
+            {% if current_sort == 'expected_settlement_date' %}▲{% elif current_sort == '-expected_settlement_date' %}▼{% endif %}
+          </th>
+          <th style="cursor: pointer;" 
+              hx-get="{% url 'financial:reconciliation_list' %}?q={{ query }}&status={{ status_filter }}&brand={{ brand_filter }}&transaction_type={{ tx_type_filter }}&sort={% if current_sort == 'status' %}-status{% else %}status{% endif %}"
+              hx-target="#reconciliation-table-container" hx-select="#reconciliation-table-container">
+            Status
+            {% if current_sort == 'status' %}▲{% elif current_sort == '-status' %}▼{% endif %}
+          </th>
+          <th>Ação</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for rec in reconciliations %}
+          {% include 'financial/partials/reconciliation_row.html' with rec=rec %}
+        {% empty %}
+        <tr>
+          <td colspan="11" style="text-align: center; padding: 2rem;">Nenhuma transação de cartão encontrada.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr class="fersie-totalizer-row">
+          <td colspan="4">TOTAL DA CONCILIAÇÃO ({{ total_count }} transações)</td>
+          <td>R$ {{ total_gross_sales }}</td>
+          <td>—</td>
+          <td>R$ {{ total_mdr_fees }}</td>
+          <td>R$ {{ total_net_amount }}</td>
+          <td colspan="3">—</td>
+        </tr>
+      </tfoot>
+    </table>
+  </form>
+
+  {% if page_obj.has_other_pages %}
+  <div class="fersie-pagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+    <span class="fersie-text-body" style="font-size: 0.85rem;">
+      Exibindo {{ page_obj.start_index }} a {{ page_obj.end_index }} de {{ page_obj.paginator.count }} transações
+    </span>
+    <div style="display: flex; gap: 0.25rem;">
+      {% if page_obj.has_previous %}
+        <a href="#" 
+           hx-get="{% url 'financial:reconciliation_list' %}?page={{ page_obj.previous_page_number }}&q={{ query }}&status={{ status_filter }}&brand={{ brand_filter }}&transaction_type={{ tx_type_filter }}&sort={{ current_sort }}" 
+           hx-target="#reconciliation-table-container" hx-select="#reconciliation-table-container" 
+           class="fersie-btn fersie-btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">&laquo; Anterior</a>
+      {% endif %}
+
+      {% for p in page_obj.paginator.page_range %}
+        {% if p == page_obj.number %}
+          <span class="fersie-btn fersie-btn-gold" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">{{ p }}</span>
+        {% else %}
+          <a href="#" 
+             hx-get="{% url 'financial:reconciliation_list' %}?page={{ p }}&q={{ query }}&status={{ status_filter }}&brand={{ brand_filter }}&transaction_type={{ tx_type_filter }}&sort={{ current_sort }}" 
+             hx-target="#reconciliation-table-container" hx-select="#reconciliation-table-container" 
+             class="fersie-btn fersie-btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">{{ p }}</a>
+        {% endif %}
+      {% endfor %}
+
+      {% if page_obj.has_next %}
+        <a href="#" 
+           hx-get="{% url 'financial:reconciliation_list' %}?page={{ page_obj.next_page_number }}&q={{ query }}&status={{ status_filter }}&brand={{ brand_filter }}&transaction_type={{ tx_type_filter }}&sort={{ current_sort }}" 
+           hx-target="#reconciliation-table-container" hx-select="#reconciliation-table-container" 
+           class="fersie-btn fersie-btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">Próximo &raquo;</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+

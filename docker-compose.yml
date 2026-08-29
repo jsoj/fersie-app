@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  fersie-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fersie-app
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - SECRET_KEY=${SECRET_KEY:-django-insecure-fersie-ecosystem-prod-key-change-me}
+      - DEBUG=${DEBUG:-False}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-*}
+      - CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS:-http://localhost:8000,http://127.0.0.1:8000}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - DATABASE_PATH=/app/db/db.sqlite3
+      - MEDIA_ROOT=/app/media
+    volumes:
+      - fersie_app_db:/app/db
+      - fersie_app_media:/app/media
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/').read()\" || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  fersie_app_db:
+    driver: local
+  fersie_app_media:
+    driver: local

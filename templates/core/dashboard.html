@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Painel Principal — Fersie App{% endblock %}
+
+{% block content %}
+<div class="fersie-dashboard-header">
+  <h1 class="fersie-heading-xl">Painel de Gestão Fersie</h1>
+  <p class="fersie-text-body">Bem-vinda ao sistema integrado de gestão Fersie.</p>
+</div>
+
+<div class="fersie-grid" style="margin-top: 2rem;">
+  <div class="fersie-card">
+    <h3 class="fersie-heading-md">Estoque & Importação</h3>
+    <p class="fersie-text-sm">Gestão de produtos, código único, fornecedores e planilha Excel.</p>
+    <a href="{% url 'inventory:product_list' %}" class="fersie-btn fersie-btn-primary" style="margin-top: 1rem;">Acessar Estoque</a>
+  </div>
+  <div class="fersie-card">
+    <h3 class="fersie-heading-md">Vendas & Financeiro</h3>
+    <p class="fersie-text-sm">Controle de vendas balcão/online, despesas e conciliação de cartões.</p>
+    <a href="{% url 'financial:overview' %}" class="fersie-btn fersie-btn-primary" style="margin-top: 1rem;">Acessar Financeiro</a>
+  </div>
+  <div class="fersie-card">
+    <h3 class="fersie-heading-md">Catálogo & Etiquetas</h3>
+    <p class="fersie-text-sm">Catálogo visual, leitor de código de barras e impressão Elgin L42PRO FULL.</p>
+    <a href="{% url 'catalog:visual_catalog' %}" class="fersie-btn fersie-btn-primary" style="margin-top: 1rem;">Acessar Catálogo</a>
+  </div>
+  <div class="fersie-card">
+    <h3 class="fersie-heading-md">Assistente IA</h3>
+    <p class="fersie-text-sm">Consultas em linguagem natural integradas ao Gemini API e AGY SDK.</p>
+    <a href="{% url 'ai_assistant:chat' %}" class="fersie-btn fersie-btn-primary" style="margin-top: 1rem;">Abrir Chat IA</a>
+  </div>
+</div>
+{% endblock %}

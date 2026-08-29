@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Compras & Ingestão de Estoque — Fersie App{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <div>
+      <h1 class="fersie-heading-xl">Gestão de Compras & Ingestão de Estoque</h1>
+      <p class="fersie-text-body">Registro de compras com fornecedores. A inclusão de produtos incrementa automaticamente o estoque.</p>
+    </div>
+    <a href="{% url 'financial:purchases_create' %}" class="fersie-btn fersie-btn-gold">+ Registrar Nova Compra</a>
+  </div>
+
+  <div style="margin-top: 1.5rem; display: flex; gap: 1rem; align-items: center; background: var(--fersie-tailoring-cream, #f9f6f0); padding: 1rem; border-radius: 8px; flex-wrap: wrap;">
+    <input type="text" name="q" value="{{ query }}" placeholder="Buscar fornecedor, NF ou nota..." 
+           class="fersie-input" style="padding: 0.5rem 1rem; min-width: 240px; flex: 2;"
+           hx-get="{% url 'financial:purchases_list' %}" 
+           hx-trigger="keyup changed delay:300ms, search" 
+           hx-target="#purchases-table-container"
+           hx-select="#purchases-table-container"
+           hx-include="[name='status'], [name='supplier'], [name='sort']">
+    
+    <select name="status" class="fersie-select" style="padding: 0.5rem; flex: 1;" 
+            hx-get="{% url 'financial:purchases_list' %}" hx-trigger="change" hx-target="#purchases-table-container" hx-select="#purchases-table-container"
+            hx-include="[name='q'], [name='supplier'], [name='sort']">
+      <option value="">Todos os Status</option>
+      <option value="paid" {% if status_filter == 'paid' %}selected{% endif %}>Pago</option>
+      <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pendente</option>
+    </select>
+
+    <select name="supplier" class="fersie-select" style="padding: 0.5rem; flex: 1;" 
+            hx-get="{% url 'financial:purchases_list' %}" hx-trigger="change" hx-target="#purchases-table-container" hx-select="#purchases-table-container"
+            hx-include="[name='q'], [name='status'], [name='sort']">
+      <option value="">Todos os Fornecedores</option>
+      {% for sup in suppliers %}
+        <option value="{{ sup.id }}" {% if supplier_filter == sup.id|stringformat:"s" %}selected{% endif %}>{{ sup.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+</div>
+
+<div id="purchases-table-container">
+  {% include 'financial/partials/purchases_table.html' %}
+</div>
+{% endblock %}
+

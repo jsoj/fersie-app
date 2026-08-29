@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}Histórico de Vendas — Fersie App{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <div>
+      <h1 class="fersie-heading-xl">Histórico de Vendas (PDV & Online)</h1>
+      <p class="fersie-text-body">Registro completo de transações comerciais com filtros dinâmicos e totalizadores.</p>
+    </div>
+    <a href="{% url 'financial:sales_create' %}" class="fersie-btn fersie-btn-gold">+ Realizar Nova Venda</a>
+  </div>
+
+  <div style="margin-top: 1.5rem; display: flex; gap: 1rem; align-items: center; background: var(--fersie-tailoring-cream, #f9f6f0); padding: 1rem; border-radius: 8px; flex-wrap: wrap;">
+    <input type="text" name="q" value="{{ query }}" placeholder="Buscar por código de venda ou cliente..." 
+           class="fersie-input" style="padding: 0.5rem 1rem; min-width: 240px; flex: 2;"
+           hx-get="{% url 'financial:sales_list' %}" 
+           hx-trigger="keyup changed delay:300ms, search" 
+           hx-target="#sales-table-container"
+           hx-select="#sales-table-container"
+           hx-include="[name='status'], [name='payment_method'], [name='sale_type'], [name='sort']">
+    
+    <select name="status" class="fersie-select" style="padding: 0.5rem; flex: 1;" 
+            hx-get="{% url 'financial:sales_list' %}" hx-trigger="change" hx-target="#sales-table-container" hx-select="#sales-table-container"
+            hx-include="[name='q'], [name='payment_method'], [name='sale_type'], [name='sort']">
+      <option value="">Todos os Status</option>
+      <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Concluída</option>
+      <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelada</option>
+    </select>
+
+    <select name="payment_method" class="fersie-select" style="padding: 0.5rem; flex: 1;" 
+            hx-get="{% url 'financial:sales_list' %}" hx-trigger="change" hx-target="#sales-table-container" hx-select="#sales-table-container"
+            hx-include="[name='q'], [name='status'], [name='sale_type'], [name='sort']">
+      <option value="">Formas de Pagamento</option>
+      <option value="dinheiro" {% if pm_filter == 'dinheiro' %}selected{% endif %}>Dinheiro</option>
+      <option value="pix" {% if pm_filter == 'pix' %}selected{% endif %}>PIX</option>
+      <option value="cartao_credito" {% if pm_filter == 'cartao_credito' %}selected{% endif %}>Cartão de Crédito</option>
+      <option value="cartao_debito" {% if pm_filter == 'cartao_debito' %}selected{% endif %}>Cartão de Débito</option>
+    </select>
+
+    <select name="sale_type" class="fersie-select" style="padding: 0.5rem; flex: 1;" 
+            hx-get="{% url 'financial:sales_list' %}" hx-trigger="change" hx-target="#sales-table-container" hx-select="#sales-table-container"
+            hx-include="[name='q'], [name='status'], [name='payment_method'], [name='sort']">
+      <option value="">Todos os Canais</option>
+      <option value="balcao" {% if sale_type_filter == 'balcao' %}selected{% endif %}>Balcão (PDV)</option>
+      <option value="online" {% if sale_type_filter == 'online' %}selected{% endif %}>E-commerce / Online</option>
+    </select>
+  </div>
+
+</div>
+
+<div id="sales-table-container">
+  {% include 'financial/partials/sales_table.html' %}
+</div>
+{% endblock %}

@@ -1,0 +1,159 @@
+<div id="sales-table-container">
+  <form id="sales-bulk-form" 
+        hx-post="{% url 'financial:sales_bulk_action' %}" 
+        hx-target="#sales-table-container" 
+        hx-select="#sales-table-container" 
+        style="margin-bottom: 0.75rem;">
+    {% csrf_token %}
+    <input type="hidden" name="q" value="{{ query }}">
+    <input type="hidden" name="status" value="{{ status_filter }}">
+    <input type="hidden" name="payment_method" value="{{ pm_filter }}">
+    <input type="hidden" name="sale_type" value="{{ sale_type_filter }}">
+    <input type="hidden" name="sort" value="{{ current_sort }}">
+    <input type="hidden" name="page" value="{{ page_obj.number }}">
+
+    <div style="display: flex; gap: 0.5rem; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 0.75rem;">
+      <div style="display: flex; gap: 0.5rem; align-items: center;">
+        <select name="bulk_action" class="fersie-select" style="padding: 0.4rem 0.8rem; border-radius: 4px;">
+          <option value="">Ações em Massa...</option>
+          <option value="completed">Marcar como Concluída</option>
+          <option value="cancelled">Marcar como Cancelada</option>
+          <option value="delete">Excluir Selecionadas</option>
+        </select>
+        <button type="submit" class="fersie-btn fersie-btn-secondary" style="padding: 0.4rem 0.8rem;">Aplicar</button>
+      </div>
+
+      <div>
+        <span class="fersie-text-body" style="font-size: 0.9rem;">
+          Vendas: <strong>{{ total_count }}</strong> | Itens Vendidos: <strong>{{ total_items_sold }}</strong> | Receita: <strong>R$ {{ total_revenue }}</strong> | Margem: <strong>R$ {{ total_margin }}</strong>
+        </span>
+      </div>
+    </div>
+
+    <table class="fersie-table">
+      <thead>
+        <tr>
+          <th style="width: 40px; text-align: center;">
+            <input type="checkbox" id="select-all-sales" onclick="document.querySelectorAll('.sale-checkbox').forEach(cb => cb.checked = this.checked)">
+          </th>
+          <th style="cursor: pointer;" 
+              hx-get="{% url 'financial:sales_list' %}?q={{ query }}&status={{ status_filter }}&payment_method={{ pm_filter }}&sale_type={{ sale_type_filter }}&sort={% if current_sort == 'sale_code' %}-sale_code{% else %}sale_code{% endif %}"
+              hx-target="#sales-table-container" hx-select="#sales-table-container">
+            Código Venda
+            {% if current_sort == 'sale_code' %}▲{% elif current_sort == '-sale_code' %}▼{% endif %}
+          </th>
+          <th style="cursor: pointer;" 
+              hx-get="{% url 'financial:sales_list' %}?q={{ query }}&status={{ status_filter }}&payment_method={{ pm_filter }}&sale_type={{ sale_type_filter }}&sort={% if current_sort == 'date' %}-date{% else %}date{% endif %}"
+              hx-target="#sales-table-container" hx-select="#sales-table-container">
+            Data
+            {% if current_sort == 'date' %}▲{% elif current_sort == '-date' %}▼{% endif %}
+          </th>
+          <th style="cursor: pointer;" 
+              hx-get="{% url 'financial:sales_list' %}?q={{ query }}&status={{ status_filter }}&payment_method={{ pm_filter }}&sale_type={{ sale_type_filter }}&sort={% if current_sort == 'customer_name' %}-customer_name{% else %}customer_name{% endif %}"
+              hx-target="#sales-table-container" hx-select="#sales-table-container">
+            Cliente
+            {% if current_sort == 'customer_name' %}▲{% elif current_sort == '-customer_name' %}▼{% endif %}
+          </th>
+          <th>Canal</th>
+          <th>Forma Pagamento</th>
+          <th style="cursor: pointer;" 
+              hx-get="{% url 'financial:sales_list' %}?q={{ query }}&status={{ status_filter }}&payment_method={{ pm_filter }}&sale_type={{ sale_type_filter }}&sort={% if current_sort == 'gross_amount' %}-gross_amount{% else %}gross_amount{% endif %}"
+              hx-target="#sales-table-container" hx-select="#sales-table-container">
+            Valor Bruto
+            {% if current_sort == 'gross_amount' %}▲{% elif current_sort == '-gross_amount' %}▼{% endif %}
+          </th>
+          <th style="cursor: pointer;" 
+              hx-get="{% url 'financial:sales_list' %}?q={{ query }}&status={{ status_filter }}&payment_method={{ pm_filter }}&sale_type={{ sale_type_filter }}&sort={% if current_sort == 'discount' %}-discount{% else %}discount{% endif %}"
+              hx-target="#sales-table-container" hx-select="#sales-table-container">
+            Desconto
+            {% if current_sort == 'discount' %}▲{% elif current_sort == '-discount' %}▼{% endif %}
+          </th>
+          <th style="cursor: pointer;" 
+              hx-get="{% url 'financial:sales_list' %}?q={{ query }}&status={{ status_filter }}&payment_method={{ pm_filter }}&sale_type={{ sale_type_filter }}&sort={% if current_sort == 'net_amount' %}-net_amount{% else %}net_amount{% endif %}"
+              hx-target="#sales-table-container" hx-select="#sales-table-container">
+            Valor Líquido
+            {% if current_sort == 'net_amount' %}▲{% elif current_sort == '-net_amount' %}▼{% endif %}
+          </th>
+          <th style="cursor: pointer;" 
+              hx-get="{% url 'financial:sales_list' %}?q={{ query }}&status={{ status_filter }}&payment_method={{ pm_filter }}&sale_type={{ sale_type_filter }}&sort={% if current_sort == 'status' %}-status{% else %}status{% endif %}"
+              hx-target="#sales-table-container" hx-select="#sales-table-container">
+            Status
+            {% if current_sort == 'status' %}▲{% elif current_sort == '-status' %}▼{% endif %}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for sale in sales %}
+        <tr>
+          <td style="text-align: center;">
+            <input type="checkbox" name="selected_ids" value="{{ sale.id }}" class="sale-checkbox">
+          </td>
+          <td><strong>{{ sale.sale_code }}</strong></td>
+          <td>{{ sale.date|date:"d/m/Y" }}</td>
+          <td>{{ sale.customer_name|default:"Cliente Balcão" }}</td>
+          <td><span class="fersie-badge fersie-badge-info">{{ sale.get_sale_type_display }}</span></td>
+          <td>{{ sale.get_payment_method_display }}</td>
+          <td>R$ {{ sale.gross_amount }}</td>
+          <td>R$ {{ sale.discount }}</td>
+          <td><strong>R$ {{ sale.net_amount }}</strong></td>
+          <td>
+            {% if sale.status == 'completed' %}
+              <span class="fersie-badge fersie-badge-success">Concluída</span>
+            {% else %}
+              <span class="fersie-badge fersie-badge-danger">Cancelada</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="10" style="text-align: center; padding: 2rem;">Nenhuma venda encontrada.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr class="fersie-totalizer-row">
+          <td colspan="6">TOTAL GERAL ({{ total_count }} vendas | {{ total_items_sold }} itens)</td>
+          <td>R$ {{ total_gross }}</td>
+          <td>R$ {{ total_discount }}</td>
+          <td>R$ {{ total_revenue }} (Margem: R$ {{ total_margin }})</td>
+          <td>—</td>
+        </tr>
+      </tfoot>
+    </table>
+  </form>
+
+  {% if page_obj.has_other_pages %}
+  <div class="fersie-pagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+    <span class="fersie-text-body" style="font-size: 0.85rem;">
+      Exibindo {{ page_obj.start_index }} a {{ page_obj.end_index }} de {{ page_obj.paginator.count }} vendas
+    </span>
+    <div style="display: flex; gap: 0.25rem;">
+      {% if page_obj.has_previous %}
+        <a href="#" 
+           hx-get="{% url 'financial:sales_list' %}?page={{ page_obj.previous_page_number }}&q={{ query }}&status={{ status_filter }}&payment_method={{ pm_filter }}&sale_type={{ sale_type_filter }}&sort={{ current_sort }}" 
+           hx-target="#sales-table-container" hx-select="#sales-table-container" 
+           class="fersie-btn fersie-btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">&laquo; Anterior</a>
+      {% endif %}
+
+      {% for p in page_obj.paginator.page_range %}
+        {% if p == page_obj.number %}
+          <span class="fersie-btn fersie-btn-gold" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">{{ p }}</span>
+        {% else %}
+          <a href="#" 
+             hx-get="{% url 'financial:sales_list' %}?page={{ p }}&q={{ query }}&status={{ status_filter }}&payment_method={{ pm_filter }}&sale_type={{ sale_type_filter }}&sort={{ current_sort }}" 
+             hx-target="#sales-table-container" hx-select="#sales-table-container" 
+             class="fersie-btn fersie-btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">{{ p }}</a>
+        {% endif %}
+      {% endfor %}
+
+      {% if page_obj.has_next %}
+        <a href="#" 
+           hx-get="{% url 'financial:sales_list' %}?page={{ page_obj.next_page_number }}&q={{ query }}&status={{ status_filter }}&payment_method={{ pm_filter }}&sale_type={{ sale_type_filter }}&sort={{ current_sort }}" 
+           hx-target="#sales-table-container" hx-select="#sales-table-container" 
+           class="fersie-btn fersie-btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">Próximo &raquo;</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+

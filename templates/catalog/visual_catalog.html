@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block title %}Catálogo Visual de Produtos — Fersie App{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+  <div>
+    <h1 class="fersie-heading-xl">Catálogo Visual</h1>
+    <p class="fersie-text-body">Catálogo interativo com busca rápida, leitor de código de barras e geração de etiquetas Elgin.</p>
+  </div>
+  <div style="display: flex; gap: 0.75rem;">
+    <a href="{% url 'catalog:scanner' %}" class="fersie-btn fersie-btn-primary">
+      📷 Leitor de Código
+    </a>
+    <a href="{% url 'catalog:label_generator' %}" class="fersie-btn fersie-btn-outline">
+      🏷️ Gerar Etiquetas Elgin
+    </a>
+  </div>
+</div>
+
+<!-- Stock Statistics Cards -->
+<div class="fersie-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 1.5rem;">
+  <div class="fersie-card" style="padding: 1rem; text-align: center;">
+    <span class="fersie-text-sm">Total no Catálogo</span>
+    <h2 class="fersie-heading-lg" style="margin: 0.25rem 0;">{{ stats.total }}</h2>
+    <span class="fersie-badge">Itens Cadastrados</span>
+  </div>
+  <div class="fersie-card" style="padding: 1rem; text-align: center;">
+    <span class="fersie-text-sm">Em Estoque</span>
+    <h2 class="fersie-heading-lg" style="margin: 0.25rem 0; color: #0f5132;">{{ stats.in_stock }}</h2>
+    <span class="fersie-badge fersie-badge-success">Qtd > 3</span>
+  </div>
+  <div class="fersie-card" style="padding: 1rem; text-align: center;">
+    <span class="fersie-text-sm">Estoque Baixo</span>
+    <h2 class="fersie-heading-lg" style="margin: 0.25rem 0; color: #664d03;">{{ stats.low_stock }}</h2>
+    <span class="fersie-badge fersie-badge-warning">1 a 3 un.</span>
+  </div>
+  <div class="fersie-card" style="padding: 1rem; text-align: center;">
+    <span class="fersie-text-sm">Sem Estoque</span>
+    <h2 class="fersie-heading-lg" style="margin: 0.25rem 0; color: #842029;">{{ stats.out_of_stock }}</h2>
+    <span class="fersie-badge fersie-badge-danger">Esgotado</span>
+  </div>
+</div>
+
+<!-- Dynamic HTMX Filter Bar -->
+<div class="fersie-filter-bar">
+  <div style="flex: 1; min-width: 200px;">
+    <input type="text" name="q" value="{{ search_query }}" placeholder="Buscar por código ou produto..." class="fersie-form-control" style="width: 100%;"
+           hx-get="{% url 'catalog:visual_catalog' %}"
+           hx-target="#product-grid-container"
+           hx-trigger="keyup changed delay:300ms, search"
+           hx-include="[name='category'], [name='size'], [name='color'], [name='stock']">
+  </div>
+
+  <div>
+    <select name="category" class="fersie-form-select"
+            hx-get="{% url 'catalog:visual_catalog' %}"
+            hx-target="#product-grid-container"
+            hx-include="[name='q'], [name='size'], [name='color'], [name='stock']">
+      <option value="">Todas as Categorias</option>
+      {% for cat in categories %}
+        <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div>
+    <select name="size" class="fersie-form-select"
+            hx-get="{% url 'catalog:visual_catalog' %}"
+            hx-target="#product-grid-container"
+            hx-include="[name='q'], [name='category'], [name='color'], [name='stock']">
+      <option value="">Todos os Tamanhos</option>
+      {% for sz in sizes %}
+        <option value="{{ sz }}" {% if selected_size == sz %}selected{% endif %}>{{ sz }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div>
+    <select name="color" class="fersie-form-select"
+            hx-get="{% url 'catalog:visual_catalog' %}"
+            hx-target="#product-grid-container"
+            hx-include="[name='q'], [name='category'], [name='size'], [name='stock']">
+      <option value="">Todas as Cores</option>
+      {% for clr in colors %}
+        <option value="{{ clr }}" {% if selected_color == clr %}selected{% endif %}>{{ clr }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div>
+    <select name="stock" class="fersie-form-select"
+            hx-get="{% url 'catalog:visual_catalog' %}"
+            hx-target="#product-grid-container"
+            hx-include="[name='q'], [name='category'], [name='size'], [name='color']">
+      <option value="">Status de Estoque</option>
+      <option value="in_stock" {% if selected_stock == 'in_stock' %}selected{% endif %}>Em Estoque (>3)</option>
+      <option value="low_stock" {% if selected_stock == 'low_stock' %}selected{% endif %}>Estoque Baixo (1-3)</option>
+      <option value="out_of_stock" {% if selected_stock == 'out_of_stock' %}selected{% endif %}>Sem Estoque (0)</option>
+    </select>
+  </div>
+
+  <a href="{% url 'catalog:visual_catalog' %}" class="fersie-btn fersie-btn-outline fersie-btn-sm" style="height: 38px;">Limpar Filtros</a>
+</div>
+
+<!-- HTMX Dynamic Container for Product Grid -->
+<div id="product-grid-container">
+  {% include 'catalog/partials/product_grid.html' %}
+</div>
+
+<!-- Modal Container for Quick View -->
+<div id="quick-view-modal-container"></div>
+
+{% endblock %}

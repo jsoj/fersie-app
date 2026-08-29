@@ -1,0 +1,77 @@
+<div class="fersie-grid">
+  {% for product in products %}
+    <div class="fersie-card" style="display: flex; flex-direction: column; justify-content: space-between; padding: 1.25rem; position: relative;">
+      <!-- Product Image Thumbnail / SVG Placeholder -->
+      <div style="width: 100%; height: 180px; background-color: var(--fersie-tailoring-beige, #f7f5f0); border-radius: 6px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 1rem;">
+        {% with primary_img=product.images.first %}
+          {% if primary_img and primary_img.image %}
+            <img src="{{ primary_img.image.url }}" alt="{{ primary_img.alt_text|default:product.descricao }}" style="width: 100%; height: 100%; object-fit: cover;">
+          {% else %}
+            <div style="text-align: center; color: var(--fersie-neutral-600, #666); padding: 1rem;">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 0.5rem; opacity: 0.7;">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+              </svg>
+              <div style="font-family: var(--fersie-font-serif); font-weight: 600; font-size: 0.9rem;">FERSIE</div>
+              <div style="font-size: 0.75rem; color: #888;">{{ product.cod_unico }}</div>
+            </div>
+          {% endif %}
+        {% endwith %}
+      </div>
+
+      <!-- Header & Badges -->
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+        <span class="fersie-badge" style="font-family: monospace; font-size: 0.8rem; background: #eef2f7;">
+          {{ product.cod_unico }}
+        </span>
+        
+        {% if product.quantidade > 3 %}
+          <span class="fersie-badge fersie-badge-success">Em Estoque ({{ product.quantidade }})</span>
+        {% elif product.quantidade >= 1 %}
+          <span class="fersie-badge fersie-badge-warning">Estoque Baixo ({{ product.quantidade }})</span>
+        {% else %}
+          <span class="fersie-badge fersie-badge-danger">Sem Estoque</span>
+        {% endif %}
+      </div>
+
+      <!-- Description & Category -->
+      <div>
+        <h3 class="fersie-heading-md" style="font-size: 1.1rem; margin: 0.25rem 0 0.5rem 0; line-height: 1.3;">
+          {{ product.descricao }}
+        </h3>
+        <p class="fersie-text-sm" style="margin-bottom: 0.75rem;">
+          {{ product.categoria }} • {{ product.tamanho|default:"U" }} • {{ product.cor|default:"Variado" }}
+        </p>
+      </div>
+
+      <!-- Price & Actions -->
+      <div style="border-top: 1px solid #eee; padding-top: 0.75rem; margin-top: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <span style="font-size: 0.75rem; color: #777; display: block;">Preço de Venda</span>
+          <strong style="font-size: 1.15rem; color: var(--fersie-tailoring-charcoal, #1e2229); font-weight: 700;">
+            R$ {{ product.preco_venda|floatformat:2 }}
+          </strong>
+        </div>
+
+        <div style="display: flex; gap: 0.4rem;">
+          <button type="button" class="fersie-btn fersie-btn-outline fersie-btn-sm"
+                  hx-get="{% url 'catalog:quick_view_modal' product.id %}"
+                  hx-target="#quick-view-modal-container"
+                  title="Especiﬁcações & Código de Barras">
+            👁️ Espiar
+          </button>
+          
+          <a href="{% url 'catalog:label_preview' %}?code={{ product.cod_unico }}" class="fersie-btn fersie-btn-primary fersie-btn-sm" title="Imprimir Etiqueta Elgin L42PRO">
+            🏷️ Etiqueta
+          </a>
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <div class="fersie-card" style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
+      <h3 class="fersie-heading-md">Nenhum produto encontrado</h3>
+      <p class="fersie-text-body">Tente ajustar os filtros ou a busca por código de produto.</p>
+    </div>
+  {% endfor %}
+</div>

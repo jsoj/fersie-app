@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block title %}Leitor de Código de Barras & QR Code — Fersie App{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <h1 class="fersie-heading-xl">Leitor de Código de Barras & QR Code</h1>
+    <p class="fersie-text-body">Suporte a leitor USB físico e câmera web integrada (Webcam).</p>
+  </div>
+  <div>
+    <a href="{% url 'catalog:visual_catalog' %}" class="fersie-btn fersie-btn-outline">
+      ← Voltar ao Catálogo
+    </a>
+  </div>
+</div>
+
+<div class="fersie-grid" style="grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start;">
+  <!-- Scanner Input Controls Card -->
+  <div class="fersie-card">
+    <h3 class="fersie-heading-md" style="margin-top: 0;">📷 Câmera & Leitor USB</h3>
+    <p class="fersie-text-sm" style="margin-bottom: 1rem;">
+      Passe o produto no leitor de código de barras USB ou aponte a câmera do dispositivo.
+    </p>
+
+    <!-- Scanner Mode Tabs -->
+    <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+      <button type="button" id="btn-tab-usb" class="fersie-btn fersie-btn-primary fersie-btn-sm" onclick="switchScannerMode('usb')">
+        🔌 Leitor USB
+      </button>
+      <button type="button" id="btn-tab-cam" class="fersie-btn fersie-btn-outline fersie-btn-sm" onclick="switchScannerMode('cam')">
+        📹 Câmera Web
+      </button>
+    </div>
+
+    <!-- USB Scanner Area -->
+    <div id="scanner-usb-area" style="background: #f8f9fa; padding: 1.25rem; border-radius: 8px; border: 2px dashed #ccc; text-align: center; margin-bottom: 1rem;">
+      <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📟</div>
+      <p style="font-weight: 600; margin: 0.25rem 0;">Aguardando leitura do código de barras...</p>
+      <span class="fersie-text-sm" style="color: #666;">Pressione qualquer código com o leitor óptico USB.</span>
+      
+      <form style="margin-top: 1rem;" hx-get="{% url 'catalog:scan_lookup_query' %}" hx-target="#scan-result-container" hx-trigger="submit">
+        <div style="display: flex; gap: 0.5rem;">
+          <input type="text" id="manual-barcode-input" name="code" placeholder="Digite ou bip o código (ex: FER-001)" class="fersie-form-control" style="flex: 1;" autofocus>
+          <button type="submit" class="fersie-btn fersie-btn-primary">Buscar</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Camera Scanner Area -->
+    <div id="scanner-cam-area" style="display: none; background: #000; border-radius: 8px; overflow: hidden; min-height: 250px; text-align: center; position: relative;">
+      <div id="qr-reader" style="width: 100%;"></div>
+      <div id="cam-fallback-msg" style="color: #fff; padding: 2rem; display: none;">
+        <p>Acesse com permissão de câmera para ativá-la.</p>
+        <button type="button" class="fersie-btn fersie-btn-primary" onclick="startWebcam()">Ativar Câmera</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scan Lookup Result Container -->
+  <div id="scan-result-container">
+    <div class="fersie-card" style="text-align: center; padding: 3rem;">
+      <div style="font-size: 3rem; color: var(--fersie-neutral-300); margin-bottom: 0.5rem;">🔍</div>
+      <h3 class="fersie-heading-md" style="margin-bottom: 0.5rem;">Nenhum produto escaneado</h3>
+      <p class="fersie-text-sm">Ao escanear um código de barras ou QR Code, as informações do produto, estoque e botões de etiqueta aparecerão aqui.</p>
+    </div>
+  </div>
+</div>
+
+<!-- html5-qrcode integration script & USB listener -->
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+<script>
+  let html5QrCode = null;
+
+  function switchScannerMode(mode) {
+    const usbArea = document.getElementById('scanner-usb-area');
+    const camArea = document.getElementById('scanner-cam-area');
+    const btnUsb = document.getElementById('btn-tab-usb');
+    const btnCam = document.getElementById('btn-tab-cam');
+
+    if (mode === 'cam') {
+      usbArea.style.display = 'none';
+      camArea.style.display = 'block';
+      btnUsb.className = 'fersie-btn fersie-btn-outline fersie-btn-sm';
+      btnCam.className = 'fersie-btn fersie-btn-primary fersie-btn-sm';
+      startWebcam();
+    } else {
+      camArea.style.display = 'none';
+      usbArea.style.display = 'block';
+      btnCam.className = 'fersie-btn fersie-btn-outline fersie-btn-sm';
+      btnUsb.className = 'fersie-btn fersie-btn-primary fersie-btn-sm';
+      if (html5QrCode) {
+        html5QrCode.stop().catch(() => {});
+      }
+      document.getElementById('manual-barcode-input').focus();
+    }
+  }
+
+  function startWebcam() {
+    if (typeof Html5Qrcode === 'undefined') {
+      document.getElementById('cam-fallback-msg').style.display = 'block';
+      return;
+    }
+
+    html5QrCode = new Html5Qrcode("qr-reader");
+    const config = { fps: 10, qrbox: { width: 250, height: 150 } };
+
+    html5QrCode.start(
+      { facingMode: "environment" },
+      config,
+      (decodedText, decodedResult) => {
+        onBarcodeScanned(decodedText);
+      },
+      (errorMessage) => {
+        // quiet scanning errors
+      }
+    ).catch(err => {
+      document.getElementById('cam-fallback-msg').style.display = 'block';
+    });
+  }
+
+  function onBarcodeScanned(code) {
+    if (!code) return;
+    const cleanCode = code.trim().replace(/[\r\n]/g, '');
+    document.getElementById('manual-barcode-input').value = cleanCode;
+    htmx.ajax('GET', '{% url "catalog:scan_lookup_query" %}?code=' + encodeURIComponent(cleanCode), {
+      target: '#scan-result-container',
+      swap: 'innerHTML'
+    });
+  }
+
+  // USB Barcode Listener Keydown Buffer
+  let barcodeBuffer = '';
+  let lastKeyTime = Date.now();
+
+  document.addEventListener('keydown', function(e) {
+    const currentTime = Date.now();
+    const isInputFocused = (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA');
+
+    if (currentTime - lastKeyTime > 100) {
+      barcodeBuffer = '';
+    }
+    lastKeyTime = currentTime;
+
+    if (e.key === 'Enter') {
+      if (barcodeBuffer.length >= 3) {
+        e.preventDefault();
+        onBarcodeScanned(barcodeBuffer);
+        barcodeBuffer = '';
+      }
+    } else if (e.key.length === 1) {
+      barcodeBuffer += e.key;
+    }
+  });
+</script>
+{% endblock %}

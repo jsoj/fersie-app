@@ -1,0 +1,166 @@
+<!-- HTMX Dynamic Table with Totalizer Row -->
+<div id="product-table-container">
+  <form id="product-bulk-form" 
+        hx-post="{% url 'inventory:product_bulk_action' %}" 
+        hx-target="#product-table-container" 
+        hx-select="#product-table-container" 
+        style="margin-bottom: 0.75rem;">
+    {% csrf_token %}
+    <input type="hidden" name="q" value="{{ q }}">
+    <input type="hidden" name="category" value="{{ selected_category }}">
+    <input type="hidden" name="stock_status" value="{{ selected_stock_status }}">
+    <input type="hidden" name="sort" value="{{ current_sort }}">
+    <input type="hidden" name="page" value="{{ page_obj.number }}">
+
+    <div style="display: flex; gap: 0.5rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+      <div style="display: flex; gap: 0.5rem; align-items: center;">
+        <select name="bulk_action" class="fersie-select" style="padding: 0.4rem 0.8rem; border-radius: 4px;">
+          <option value="">Ações em Massa...</option>
+          <option value="delete">Excluir Selecionados</option>
+          <option value="adjust_stock_add">+1 Quantidade</option>
+          <option value="adjust_stock_remove">-1 Quantidade</option>
+          <option value="zero_stock">Zerar Estoque</option>
+        </select>
+        <button type="submit" class="fersie-btn fersie-btn-secondary" style="padding: 0.4rem 0.8rem;">Aplicar</button>
+      </div>
+
+      <div>
+        <span class="fersie-text-body" style="font-size: 0.9rem;">
+          Total em Estoque: <strong>{{ total_qty }}</strong> unidades | Valor Total: <strong>R$ {{ total_value }}</strong>
+        </span>
+      </div>
+    </div>
+
+    <table class="fersie-table" style="margin-top: 0.75rem;">
+      <thead>
+        <tr>
+          <th style="width: 40px; text-align: center;">
+            <input type="checkbox" id="select-all-products" onclick="document.querySelectorAll('.product-checkbox').forEach(cb => cb.checked = this.checked)">
+          </th>
+          <th style="cursor: pointer;" 
+              hx-get="{% url 'inventory:product_list' %}?q={{ q }}&category={{ selected_category }}&stock_status={{ selected_stock_status }}&sort={% if current_sort == 'cod_unico' %}-cod_unico{% else %}cod_unico{% endif %}"
+              hx-target="#product-table-container" 
+              hx-select="#product-table-container">
+            Código Único
+            {% if current_sort == 'cod_unico' %}▲{% elif current_sort == '-cod_unico' %}▼{% endif %}
+          </th>
+          <th style="cursor: pointer;" 
+              hx-get="{% url 'inventory:product_list' %}?q={{ q }}&category={{ selected_category }}&stock_status={{ selected_stock_status }}&sort={% if current_sort == 'descricao' %}-descricao{% else %}descricao{% endif %}"
+              hx-target="#product-table-container" 
+              hx-select="#product-table-container">
+            Descrição
+            {% if current_sort == 'descricao' %}▲{% elif current_sort == '-descricao' %}▼{% endif %}
+          </th>
+          <th>Cor</th>
+          <th>Tamanho</th>
+          <th style="cursor: pointer;" 
+              hx-get="{% url 'inventory:product_list' %}?q={{ q }}&category={{ selected_category }}&stock_status={{ selected_stock_status }}&sort={% if current_sort == 'preco_custo' %}-preco_custo{% else %}preco_custo{% endif %}"
+              hx-target="#product-table-container" 
+              hx-select="#product-table-container">
+            Preço Custo
+            {% if current_sort == 'preco_custo' %}▲{% elif current_sort == '-preco_custo' %}▼{% endif %}
+          </th>
+          <th style="cursor: pointer;" 
+              hx-get="{% url 'inventory:product_list' %}?q={{ q }}&category={{ selected_category }}&stock_status={{ selected_stock_status }}&sort={% if current_sort == 'preco_venda' %}-preco_venda{% else %}preco_venda{% endif %}"
+              hx-target="#product-table-container" 
+              hx-select="#product-table-container">
+            Preço Venda
+            {% if current_sort == 'preco_venda' %}▲{% elif current_sort == '-preco_venda' %}▼{% endif %}
+          </th>
+          <th style="cursor: pointer;" 
+              hx-get="{% url 'inventory:product_list' %}?q={{ q }}&category={{ selected_category }}&stock_status={{ selected_stock_status }}&sort={% if current_sort == 'quantidade' %}-quantidade{% else %}quantidade{% endif %}"
+              hx-target="#product-table-container" 
+              hx-select="#product-table-container">
+            Quantidade
+            {% if current_sort == 'quantidade' %}▲{% elif current_sort == '-quantidade' %}▼{% endif %}
+          </th>
+          <th style="cursor: pointer;" 
+              hx-get="{% url 'inventory:product_list' %}?q={{ q }}&category={{ selected_category }}&stock_status={{ selected_stock_status }}&sort={% if current_sort == 'categoria' %}-categoria{% else %}categoria{% endif %}"
+              hx-target="#product-table-container" 
+              hx-select="#product-table-container">
+            Categoria
+            {% if current_sort == 'categoria' %}▲{% elif current_sort == '-categoria' %}▼{% endif %}
+          </th>
+          <th>Fornecedor</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for product in products %}
+        <tr>
+          <td style="text-align: center;">
+            <input type="checkbox" name="selected_ids" value="{{ product.id }}" class="product-checkbox">
+          </td>
+          <td><strong>{{ product.cod_unico }}</strong></td>
+          <td>{{ product.descricao }}</td>
+          <td>{{ product.cor|default:"—" }}</td>
+          <td>{{ product.tamanho|default:"—" }}</td>
+          <td>R$ {{ product.preco_custo }}</td>
+          <td>R$ {{ product.preco_venda }}</td>
+          <td>
+            {% if product.quantidade == 0 %}
+              <span class="fersie-badge fersie-badge-danger">0 (Esgotado)</span>
+            {% elif product.quantidade <= 3 %}
+              <span class="fersie-badge fersie-badge-warning">{{ product.quantidade }} (Baixo)</span>
+            {% else %}
+              <span class="fersie-badge fersie-badge-success">{{ product.quantidade }}</span>
+            {% endif %}
+          </td>
+          <td>{{ product.categoria }}</td>
+          <td>{{ product.fornecedor.name|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="10" style="text-align: center; padding: 2rem;">Nenhum produto cadastrado ainda.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr class="fersie-totalizer-row">
+          <td colspan="5">TOTAL GERAL</td>
+          <td>R$ {{ total_cost|default:"0.00" }}</td>
+          <td>R$ {{ total_value|default:"0.00" }}</td>
+          <td>{{ total_qty|default:"0" }}</td>
+          <td colspan="2">—</td>
+        </tr>
+      </tfoot>
+    </table>
+  </form>
+
+  {% if page_obj.has_other_pages %}
+  <div class="fersie-pagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+    <span class="fersie-text-body" style="font-size: 0.85rem;">
+      Exibindo {{ page_obj.start_index }} a {{ page_obj.end_index }} de {{ page_obj.paginator.count }} produtos
+    </span>
+    <div style="display: flex; gap: 0.25rem;">
+      {% if page_obj.has_previous %}
+        <a href="#" 
+           hx-get="{% url 'inventory:product_list' %}?page={{ page_obj.previous_page_number }}&q={{ q }}&category={{ selected_category }}&stock_status={{ selected_stock_status }}&sort={{ current_sort }}" 
+           hx-target="#product-table-container" 
+           hx-select="#product-table-container" 
+           class="fersie-btn fersie-btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">&laquo; Anterior</a>
+      {% endif %}
+
+      {% for p in page_obj.paginator.page_range %}
+        {% if p == page_obj.number %}
+          <span class="fersie-btn fersie-btn-gold" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">{{ p }}</span>
+        {% else %}
+          <a href="#" 
+             hx-get="{% url 'inventory:product_list' %}?page={{ p }}&q={{ q }}&category={{ selected_category }}&stock_status={{ selected_stock_status }}&sort={{ current_sort }}" 
+             hx-target="#product-table-container" 
+             hx-select="#product-table-container" 
+             class="fersie-btn fersie-btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">{{ p }}</a>
+        {% endif %}
+      {% endfor %}
+
+      {% if page_obj.has_next %}
+        <a href="#" 
+           hx-get="{% url 'inventory:product_list' %}?page={{ page_obj.next_page_number }}&q={{ q }}&category={{ selected_category }}&stock_status={{ selected_stock_status }}&sort={{ current_sort }}" 
+           hx-target="#product-table-container" 
+           hx-select="#product-table-container" 
+           class="fersie-btn fersie-btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">Próximo &raquo;</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+

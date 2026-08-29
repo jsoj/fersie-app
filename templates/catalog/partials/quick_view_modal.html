@@ -1,0 +1,73 @@
+<div class="fersie-modal-backdrop" id="quick-view-modal" onclick="if(event.target === this) this.parentNode.innerHTML='';">
+  <div class="fersie-modal-content">
+    <div class="fersie-modal-header">
+      <h3 class="fersie-heading-md" style="margin: 0;">Detalhes do Produto — {{ product.cod_unico }}</h3>
+      <button type="button" class="fersie-modal-close" onclick="document.getElementById('quick-view-modal-container').innerHTML='';">&times;</button>
+    </div>
+
+    <div class="fersie-modal-body">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+        <div>
+          <h4 class="fersie-heading-sm" style="margin-top: 0;">{{ product.descricao }}</h4>
+          <p class="fersie-text-sm"><strong>Código Único:</strong> <span style="font-family: monospace;">{{ product.cod_unico }}</span></p>
+          <p class="fersie-text-sm"><strong>Categoria:</strong> {{ product.categoria }}</p>
+          <p class="fersie-text-sm"><strong>Tamanho:</strong> {{ product.tamanho|default:"N/A" }}</p>
+          <p class="fersie-text-sm"><strong>Cor:</strong> {{ product.cor|default:"N/A" }}</p>
+          <p class="fersie-text-sm"><strong>Fornecedor:</strong> {{ product.fornecedor|default:"Não informado" }}</p>
+          <p class="fersie-text-sm">
+            <strong>Estoque:</strong> 
+            {% if product.quantidade > 3 %}
+              <span class="fersie-badge fersie-badge-success">{{ product.quantidade }} unidades</span>
+            {% elif product.quantidade >= 1 %}
+              <span class="fersie-badge fersie-badge-warning">{{ product.quantidade }} unidades</span>
+            {% else %}
+              <span class="fersie-badge fersie-badge-danger">Sem Estoque</span>
+            {% endif %}
+          </p>
+        </div>
+
+        <div style="background: #fafafa; padding: 1rem; border-radius: 8px; border: 1px solid #eee;">
+          <p class="fersie-text-sm" style="margin-top: 0;"><strong>Preço de Custo:</strong> R$ {{ product.preco_custo|floatformat:2 }}</p>
+          <p class="fersie-text-sm" style="font-size: 1.1rem; color: var(--fersie-tailoring-charcoal);">
+            <strong>Preço de Venda:</strong> R$ {{ product.preco_venda|floatformat:2 }}
+          </p>
+
+          <div style="margin-top: 1rem; text-align: center;">
+            <span class="fersie-text-sm" style="display: block; margin-bottom: 0.25rem;">QR Code do Produto</span>
+            <div style="display: inline-block; background: #fff; padding: 0.5rem; border: 1px solid #ddd; border-radius: 6px;">
+              {{ qr_svg|safe }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barcode Render Box -->
+      <div style="text-align: center; background: #fff; padding: 1rem; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 1.5rem;">
+        <span class="fersie-text-sm" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Código de Barras Code 128</span>
+        <div>
+          {{ barcode_svg|safe }}
+        </div>
+      </div>
+
+      <!-- Elgin L42PRO TSPL String Command Preview Box -->
+      <div style="background: #1e2229; color: #a6e22e; padding: 1rem; border-radius: 6px; font-family: monospace; font-size: 0.85rem;">
+        <div style="color: #fff; font-weight: bold; margin-bottom: 0.5rem; border-bottom: 1px solid #444; padding-bottom: 0.25rem; display: flex; justify-content: space-between;">
+          <span>Comando Elgin L42PRO FULL (TSPL 50x30mm)</span>
+          <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('tspl-cmd-box').innerText); alert('Comando TSPL copiado!');" style="background: var(--fersie-gold); color: #000; border: none; border-radius: 4px; padding: 2px 8px; cursor: pointer; font-size: 0.75rem;">
+            Copiar TSPL
+          </button>
+        </div>
+        <pre id="tspl-cmd-box" style="margin: 0; white-space: pre-wrap;">{{ tspl_command }}</pre>
+      </div>
+    </div>
+
+    <div style="padding: 1rem 1.5rem; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 0.75rem;">
+      <a href="{% url 'catalog:label_preview' %}?code={{ product.cod_unico }}" class="fersie-btn fersie-btn-primary">
+        🏷️ Imprimir Etiqueta Elgin
+      </a>
+      <button type="button" class="fersie-btn fersie-btn-outline" onclick="document.getElementById('quick-view-modal-container').innerHTML='';">
+        Fechar
+      </button>
+    </div>
+  </div>
+</div>

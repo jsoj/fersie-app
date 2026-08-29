@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Conciliação de Cartões — Fersie App{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+  <h1 class="fersie-heading-xl">Conciliação de Cartões (MDR & Repasses)</h1>
+  <p class="fersie-text-body">Apuração de vendas em cartão, retenção de taxas MDR e conferência de repasses previstos.</p>
+
+  <div style="margin-top: 1.5rem; display: flex; gap: 1rem; align-items: center; background: var(--fersie-tailoring-cream, #f9f6f0); padding: 1rem; border-radius: 8px; flex-wrap: wrap;">
+    <input type="text" name="q" value="{{ query }}" placeholder="Buscar por código de venda..." 
+           class="fersie-input" style="padding: 0.5rem 1rem; min-width: 240px; flex: 2;"
+           hx-get="{% url 'financial:reconciliation_list' %}" 
+           hx-trigger="keyup changed delay:300ms, search" 
+           hx-target="#reconciliation-table-container"
+           hx-select="#reconciliation-table-container"
+           hx-include="[name='status'], [name='brand'], [name='transaction_type'], [name='sort']">
+
+    <select name="status" class="fersie-select" style="padding: 0.5rem; flex: 1;" 
+            hx-get="{% url 'financial:reconciliation_list' %}" hx-trigger="change" hx-target="#reconciliation-table-container" hx-select="#reconciliation-table-container"
+            hx-include="[name='q'], [name='brand'], [name='transaction_type'], [name='sort']">
+      <option value="">Todos os Status</option>
+      <option value="pendente" {% if status_filter == 'pendente' %}selected{% endif %}>Pendente</option>
+      <option value="conciliado" {% if status_filter == 'conciliado' %}selected{% endif %}>Conciliado</option>
+      <option value="divergente" {% if status_filter == 'divergente' %}selected{% endif %}>Divergente</option>
+    </select>
+
+    <select name="brand" class="fersie-select" style="padding: 0.5rem; flex: 1;" 
+            hx-get="{% url 'financial:reconciliation_list' %}" hx-trigger="change" hx-target="#reconciliation-table-container" hx-select="#reconciliation-table-container"
+            hx-include="[name='q'], [name='status'], [name='transaction_type'], [name='sort']">
+      <option value="">Todas as Bandeiras</option>
+      <option value="visa" {% if brand_filter == 'visa' %}selected{% endif %}>Visa</option>
+      <option value="mastercard" {% if brand_filter == 'mastercard' %}selected{% endif %}>Mastercard</option>
+      <option value="elo" {% if brand_filter == 'elo' %}selected{% endif %}>Elo</option>
+      <option value="outras" {% if brand_filter == 'outras' %}selected{% endif %}>Outras</option>
+    </select>
+
+    <select name="transaction_type" class="fersie-select" style="padding: 0.5rem; flex: 1;" 
+            hx-get="{% url 'financial:reconciliation_list' %}" hx-trigger="change" hx-target="#reconciliation-table-container" hx-select="#reconciliation-table-container"
+            hx-include="[name='q'], [name='status'], [name='brand'], [name='sort']">
+      <option value="">Todas as Modalidades</option>
+      <option value="debito" {% if tx_type_filter == 'debito' %}selected{% endif %}>Débito</option>
+      <option value="credito_avista" {% if tx_type_filter == 'credito_avista' %}selected{% endif %}>Crédito À Vista</option>
+      <option value="credito_parcelado" {% if tx_type_filter == 'credito_parcelado' %}selected{% endif %}>Crédito Parcelado</option>
+    </select>
+  </div>
+
+</div>
+
+<div id="reconciliation-table-container">
+  {% include 'financial/partials/reconciliation_table.html' %}
+</div>
+{% endblock %}

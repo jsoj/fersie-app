@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Estoque — Fersie App{% endblock %}
+
+{% block content %}
+<div class="fersie-inventory-header">
+  <h1 class="fersie-heading-xl">Gestão de Estoque</h1>
+  <p class="fersie-text-body">Lista de mercadorias com totalizadores dinâmicos HTMX e importação Excel.</p>
+</div>
+
+<div class="fersie-card" style="margin-top: 1.5rem; margin-bottom: 1.5rem;">
+  <div style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+    <div style="flex: 2; min-width: 240px;">
+      <input type="text" 
+             name="q" 
+             class="fersie-input" 
+             placeholder="Buscar por código único, descrição, cor ou fornecedor..."
+             hx-get="{% url 'inventory:product_list' %}" 
+             hx-trigger="keyup changed delay:300ms, search" 
+             hx-target="#product-table-container" 
+             hx-select="#product-table-container"
+             hx-include="[name='category'], [name='stock_status'], [name='sort']"
+             value="{{ q|default:'' }}"
+             style="width: 100%; padding: 0.6rem 1rem; border: 1px solid var(--fersie-neutral-300, #ccc); border-radius: 4px;">
+    </div>
+
+    <div style="flex: 1; min-width: 160px;">
+      <select name="category" 
+              class="fersie-select" 
+              hx-get="{% url 'inventory:product_list' %}" 
+              hx-trigger="change" 
+              hx-target="#product-table-container"
+              hx-select="#product-table-container"
+              hx-include="[name='q'], [name='stock_status'], [name='sort']"
+              style="width: 100%; padding: 0.6rem;">
+        <option value="">Todas as Categorias</option>
+        {% for cat in categories %}
+          <option value="{{ cat.name }}" {% if selected_category == cat.name %}selected{% endif %}>{{ cat.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div style="flex: 1; min-width: 160px;">
+      <select name="stock_status" 
+              class="fersie-select" 
+              hx-get="{% url 'inventory:product_list' %}" 
+              hx-trigger="change" 
+              hx-target="#product-table-container"
+              hx-select="#product-table-container"
+              hx-include="[name='q'], [name='category'], [name='sort']"
+              style="width: 100%; padding: 0.6rem;">
+        <option value="">Todos os Status</option>
+        <option value="in_stock" {% if selected_stock_status == 'in_stock' %}selected{% endif %}>Em Estoque (>3)</option>
+        <option value="low_stock" {% if selected_stock_status == 'low_stock' %}selected{% endif %}>Estoque Baixo (1-3)</option>
+        <option value="out_of_stock" {% if selected_stock_status == 'out_of_stock' %}selected{% endif %}>Esgotado (0)</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top: 1rem;">
+  {% include 'components/htmx_totalizer_table.html' %}
+</div>
+{% endblock %}
+

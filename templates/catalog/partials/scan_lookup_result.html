@@ -1,0 +1,85 @@
+{% if found %}
+  <div class="fersie-card" style="border-top: 4px solid #0f5132;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+      <span class="fersie-badge fersie-badge-success" style="font-size: 0.9rem; padding: 0.4rem 0.8rem;">
+        ✓ Produto Encontrado
+      </span>
+      <span style="font-family: monospace; font-weight: 600; color: #555;">{{ product.cod_unico }}</span>
+    </div>
+
+    <!-- Product Summary Box -->
+    <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1.25rem;">
+      <div style="width: 90px; height: 90px; background: #f0f0f0; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+        {% with img=product.images.first %}
+          {% if img and img.image %}
+            <img src="{{ img.image.url }}" alt="{{ product.descricao }}" style="width: 100%; height: 100%; object-fit: cover;">
+          {% else %}
+            <span style="font-family: var(--fersie-font-serif); font-size: 0.8rem; font-weight: bold; color: #777;">FERSIE</span>
+          {% endif %}
+        {% endwith %}
+      </div>
+
+      <div style="flex: 1;">
+        <h3 class="fersie-heading-md" style="margin: 0 0 0.25rem 0; font-size: 1.2rem;">{{ product.descricao }}</h3>
+        <p class="fersie-text-sm" style="margin: 0 0 0.5rem 0;">
+          {{ product.categoria }} • Tam: {{ product.tamanho|default:"U" }} • Cor: {{ product.cor|default:"Variado" }}
+        </p>
+
+        <div style="display: flex; gap: 0.75rem; align-items: center;">
+          <strong style="font-size: 1.25rem; color: var(--fersie-tailoring-charcoal);">R$ {{ product.preco_venda|floatformat:2 }}</strong>
+          
+          {% if product.quantidade > 3 %}
+            <span class="fersie-badge fersie-badge-success">Em Estoque ({{ product.quantidade }})</span>
+          {% elif product.quantidade >= 1 %}
+            <span class="fersie-badge fersie-badge-warning">Estoque Baixo ({{ product.quantidade }})</span>
+          {% else %}
+            <span class="fersie-badge fersie-badge-danger">Sem Estoque</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Barcode & QR Display -->
+    <div style="background: #fafafa; border: 1px solid #eee; padding: 1rem; border-radius: 8px; text-align: center; margin-bottom: 1.25rem;">
+      <div style="display: flex; justify-content: space-around; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <span class="fersie-text-sm" style="display: block; margin-bottom: 0.25rem; font-weight: 600;">Code 128</span>
+          {{ barcode_svg|safe }}
+        </div>
+        <div>
+          <span class="fersie-text-sm" style="display: block; margin-bottom: 0.25rem; font-weight: 600;">QR Code</span>
+          <div style="background: #fff; padding: 4px; border: 1px solid #ddd; border-radius: 4px; display: inline-block;">
+            {{ qr_svg|safe }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+      <a href="{% url 'catalog:label_preview' %}?code={{ product.cod_unico }}" class="fersie-btn fersie-btn-primary" style="flex: 1;">
+        🏷️ Imprimir Etiqueta Elgin
+      </a>
+      <a href="{% url 'inventory:product_list' %}" class="fersie-btn fersie-btn-outline">
+        ✏️ Gerenciar Estoque
+      </a>
+    </div>
+  </div>
+
+{% else %}
+  <div class="fersie-card" style="border-top: 4px solid #842029;">
+    <div style="text-align: center; padding: 1rem;">
+      <div style="font-size: 2.5rem; color: #842029; margin-bottom: 0.5rem;">⚠️</div>
+      <h3 class="fersie-heading-md" style="margin-bottom: 0.5rem; color: #842029;">Código não encontrado</h3>
+      <p class="fersie-text-body">
+        Nenhum produto cadastrado com o código <strong style="font-family: monospace;">{{ scanned_code }}</strong>.
+      </p>
+      
+      <div style="margin-top: 1.5rem; display: flex; justify-content: center; gap: 1rem;">
+        <a href="{% url 'inventory:product_list' %}" class="fersie-btn fersie-btn-primary">
+          ➕ Cadastrar Novo Produto
+        </a>
+      </div>
+    </div>
+  </div>
+{% endif %}

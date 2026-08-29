@@ -1,0 +1,31 @@
+<tr id="rec-row-{{ rec.id }}">
+  <td style="text-align: center;">
+    <input type="checkbox" name="selected_ids" value="{{ rec.id }}" class="rec-checkbox">
+  </td>
+  <td><strong>{{ rec.sale.sale_code }}</strong></td>
+  <td><span class="fersie-badge fersie-badge-info">{{ rec.get_card_brand_display }}</span></td>
+  <td>{{ rec.get_transaction_type_display }}</td>
+  <td>R$ {{ rec.gross_amount }}</td>
+  <td>{{ rec.fee_percentage }}%</td>
+  <td>R$ {{ rec.fee_amount }}</td>
+  <td><strong>R$ {{ rec.net_amount }}</strong></td>
+  <td>{{ rec.expected_settlement_date|date:"d/m/Y"|default:"—" }}</td>
+  <td>
+    {% if rec.status == 'conciliado' %}
+      <span class="fersie-badge fersie-badge-success">Conciliado</span>
+    {% elif rec.status == 'divergente' %}
+      <span class="fersie-badge fersie-badge-danger">Divergente</span>
+    {% else %}
+      <span class="fersie-badge fersie-badge-warning">Pendente</span>
+    {% endif %}
+  </td>
+  <td>
+    <button type="button" class="fersie-btn fersie-btn-sm fersie-btn-secondary"
+            hx-post="{% url 'financial:reconciliation_toggle_status' rec.id %}"
+            hx-target="#rec-row-{{ rec.id }}"
+            hx-swap="outerHTML">
+      Alternar Status
+    </button>
+  </td>
+</tr>
+
