@@ -199,3 +199,36 @@ class AIAssistantViewTests(TestCase):
         data = response.json()
         self.assertEqual(data['response'], "Resposta de teste JSON.")
         self.assertIn('timestamp', data)
+
+    @patch.object(AIAssistantService, 'query_ai')
+    def test_whatsapp_webhook_processing(self, mock_query_ai):
+        mock_query_ai.return_value = "O estoque atual de vestidos é 15 unidades."
+        url = reverse('ai_assistant:whatsapp_webhook')
+
+        payload = {
+            "event": "messages.upsert",
+            "instance": "fersie_bot",
+            "data": {
+                "key": {
+                    "remoteJid": "5544999999999@s.whatsapp.net",
+                    "fromMe": False,
+                    "id": "MSG123"
+                },
+                "pushName": "Cliente Fersie",
+                "message": {
+                    "conversation": "Qual o estoque de vestidos?"
+                }
+            }
+        }
+
+        response = self.client.post(
+            url,
+            data=json.dumps(payload),
+            content_type='application/json'
+        )
+
+        self.assertEqual(response.status_code, 200)
+        res_data = response.json()
+        self.assertEqual(res_data['status'], 'processed')
+        self.assertEqual(res_data['reply'], "O estoque atual de vestidos é 15 unidades.")
+

@@ -90,3 +90,73 @@ def query_ai(request):
         })
 
     return JsonResponse({'error': 'Somente POST é permitido.'}, status=400)
+
+
+from django.views.decorators.csrf import csrf_exempt
+import json
+import requests
+
+@csrf_exempt
+def whatsapp_webhook(request):
+    """
+    Webhook endpoint para Evolution API (fersie_bot).
+    Recebe mensagens do WhatsApp, consulta o AIAssistantService e responde via Evolution API.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Somente método POST é permitido.'}, status=405)
+
+    config = AIAssistantConfig.get_solo()
+    if not config.is_active or not getattr(config, 'whatsapp_integration_active', True):
+        return JsonResponse({'status': 'disabled', 'message': 'Integração de IA / WhatsApp inativa.'})
+
+    try:
+        payload = json.loads(request.body.decode('utf-8'))
+    except Exception:
+        return JsonResponse({'error': 'JSON inválido.'}, status=400)
+
+    event = payload.get('event')
+    if event == 'messages.upsert':
+        data = payload.get('data', {})
+        key = data.get('key', {})
+        from_me = key.get('fromMe', False)
+        remote_jid = key.get('remoteJid', '')
+
+        if not from_me and remote_jid:
+            message_obj = data.get('message', {})
+            text = (
+                message_obj.get('conversation') or
+                message_obj.get('extendedTextMessage', {}).get('text') or
+                ''
+            ).strip()
+
+            if text:
+                # Registra mensagem de entrada
+                ChatMessage.objects.create(role='user', content=f"[WhatsApp {remote_jid}] {text}")
+
+                # Consulta Inteligência Artificial com contexto RAG do banco
+                ai_reply = AIAssistantService.query_ai(text)
+
+                # Registra resposta da IA
+                ChatMessage.objects.create(role='assistant', content=f"[WhatsApp {remote_jid}] {ai_reply}")
+
+                # Envia resposta via Evolution API se a chave de API estiver configurada
+                if config.evolution_api_key:
+                    send_url = f"{config.evolution_api_url.rstrip('/')}/message/sendText/{config.evolution_instance_name}"
+                    headers = {
+                        'apikey': config.evolution_api_key,
+                        'Content-Type': 'application/json'
+                    }
+                    data_send = {
+                        'number': remote_jid.split('@')[0],
+                        'options': {'delay': 1200, 'presence': 'composing'},
+                        'textMessage': {'text': ai_reply}
+                    }
+                    try:
+                        requests.post(send_url, json=data_send, headers=headers, timeout=10)
+                    except Exception as e:
+                        print(f"Erro ao enviar resposta via Evolution API: {e}")
+
+                return JsonResponse({'status': 'processed', 'reply': ai_reply})
+
+    return JsonResponse({'status': 'ignored'})
+

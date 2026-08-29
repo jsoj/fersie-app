@@ -27,6 +27,27 @@ class AIAssistantConfig(models.Model):
         default=0.7,
         verbose_name="Temperatura"
     )
+    evolution_api_url = models.CharField(
+        max_length=255,
+        default='https://evolution.projetobrasil2050.site',
+        verbose_name="URL da Evolution API"
+    )
+    evolution_api_key = models.CharField(
+        max_length=255,
+        blank=True,
+        default='',
+        verbose_name="Chave API (Evolution API)",
+        help_text="Chave de autenticação apikey da Evolution API"
+    )
+    evolution_instance_name = models.CharField(
+        max_length=100,
+        default='fersie_bot',
+        verbose_name="Nome da Instância WhatsApp"
+    )
+    whatsapp_integration_active = models.BooleanField(
+        default=True,
+        verbose_name="Integração WhatsApp Ativa"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
