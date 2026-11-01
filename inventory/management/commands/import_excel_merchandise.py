@@ -171,12 +171,12 @@ class Command(BaseCommand):
         skipped_count = 0
 
         # Column Aliases
-        code_aliases = ["cod_unico", "código", "codigo", "referência", "referencia", "cód", "cod", "barras", "code", "barcode"]
-        desc_aliases = ["descrição", "descricao", "produto", "nome", "item", "description", "name"]
-        cat_aliases = ["categoria", "grupo", "category"]
-        cost_aliases = ["preço_custo", "preco_custo", "custo", "valor compra", "preço custo", "preco custo", "cost_price"]
-        sale_aliases = ["preço_venda", "preco_venda", "venda", "preço", "preco", "valor venda", "preço venda", "preco venda", "sale_price"]
-        qty_aliases = ["estoque", "qtd", "quantidade", "qtd_estoque", "stock", "qty"]
+        code_aliases = ["codigo fersie", "cod_unico", "cod unico orig (ieda)", "código", "codigo", "referência", "referencia", "cód", "cod", "barras", "code", "barcode"]
+        desc_aliases = ["descricao detalhada", "descricao resumo", "descrição", "descricao", "produto", "nome", "item", "description", "name"]
+        cat_aliases = ["subcategoria", "categoria", "grupo", "category"]
+        cost_aliases = ["custo efetivo (rs)", "preco de compra (rs)", "preço_custo", "preco_custo", "custo", "valor compra", "preço custo", "preco custo", "cost_price"]
+        sale_aliases = ["preco de venda (rs)", "preço_venda", "preco_venda", "venda", "preço", "preco", "valor venda", "preço venda", "preco venda", "sale_price"]
+        qty_aliases = ["qtd", "estoque", "quantidade", "qtd_estoque", "stock", "qty"]
         color_aliases = ["cor", "color"]
         size_aliases = ["tamanho", "size"]
         supplier_aliases = ["fornecedor", "supplier"]

@@ -29,6 +29,7 @@ RUN mkdir -p /app/db /app/media /app/staticfiles
 
 # Copy application source code
 COPY . .
+RUN chmod +x /app/entrypoint.sh
 
 # Collect static files during image build
 RUN python manage.py collectstatic --noinput || true
@@ -39,5 +40,5 @@ EXPOSE 8000
 # Volume mount points for persistent storage
 VOLUME ["/app/db", "/app/media"]
 
-# Production entrypoint using Gunicorn with 4 workers
-CMD ["gunicorn", "fersie_app.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "4"]
+# Production entrypoint using entrypoint script
+ENTRYPOINT ["/app/entrypoint.sh"]
