@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import AIAssistantConfig, ChatMessage
+from .models import AIAssistantConfig, ChatMessage, ChatConversation
 
 @admin.register(AIAssistantConfig)
 class AIAssistantConfigAdmin(admin.ModelAdmin):
@@ -7,9 +7,16 @@ class AIAssistantConfigAdmin(admin.ModelAdmin):
     list_filter = ('is_active', 'model_name')
     readonly_fields = ('updated_at', 'created_at')
 
+@admin.register(ChatConversation)
+class ChatConversationAdmin(admin.ModelAdmin):
+    list_display = ('id', 'title', 'user', 'updated_at', 'created_at')
+    list_filter = ('user', 'updated_at')
+    search_fields = ('title',)
+    readonly_fields = ('created_at', 'updated_at')
+
 @admin.register(ChatMessage)
 class ChatMessageAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'role', 'short_content', 'timestamp')
+    list_display = ('id', 'conversation', 'user', 'role', 'short_content', 'timestamp')
     list_filter = ('role', 'timestamp', 'user')
     readonly_fields = ('timestamp',)
 

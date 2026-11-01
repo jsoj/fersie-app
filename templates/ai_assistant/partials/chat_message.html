@@ -1,16 +1,26 @@
 <!-- User Message Bubble -->
-<div class="chat-bubble user-bubble" style="align-self: flex-end; max-width: 80%; background-color: var(--fersie-gold); color: #fff; padding: 0.75rem 1rem; border-radius: 12px 12px 0 12px; box-shadow: var(--fersie-shadow-sm);">
-  <div style="font-size: 0.75rem; opacity: 0.85; margin-bottom: 0.2rem; text-align: right;">
+<div class="chat-bubble user-bubble">
+  <div class="bubble-meta">
     {% if user_msg.user %}{{ user_msg.user.username }}{% else %}Você{% endif %} &bull; {{ user_msg.timestamp|date:"H:i" }}
   </div>
-  <div>{{ user_msg.content }}</div>
+  <div class="bubble-text">{{ user_msg.content }}</div>
 </div>
 
 <!-- Assistant Message Bubble -->
-<div class="chat-bubble assistant-bubble" style="align-self: flex-start; max-width: 80%; background-color: #fff; border: 1px solid var(--fersie-neutral-300); color: var(--fersie-neutral-800); padding: 0.75rem 1rem; border-radius: 12px 12px 12px 0; box-shadow: var(--fersie-shadow-sm);">
-  <div style="font-size: 0.75rem; color: var(--fersie-tailoring-charcoal); font-weight: 700; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.3rem;">
-    <span class="fersie-badge" style="background-color: var(--fersie-tailoring-charcoal); color: var(--fersie-gold); padding: 0.1rem 0.4rem; font-size: 0.65rem;">FERSIE AI</span>
+<div class="chat-bubble assistant-bubble">
+  <div class="bubble-meta assistant-meta">
+    <span class="fersie-ai-tag">FERSIE AI</span>
     <span>&bull; {{ assistant_msg.timestamp|date:"H:i" }}</span>
   </div>
-  <div style="white-space: pre-wrap; line-height: 1.5;">{{ assistant_msg.content }}</div>
+  <div class="markdown-raw" style="display: none;">{{ assistant_msg.content }}</div>
+  <div class="markdown-body"></div>
 </div>
+
+<script>
+  if (typeof renderAllStoredMarkdown === 'function') {
+    renderAllStoredMarkdown();
+  }
+  if (typeof scrollChatToBottom === 'function') {
+    scrollChatToBottom();
+  }
+</script>

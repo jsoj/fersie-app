@@ -6,7 +6,7 @@ import urllib.error
 from django.db.models import Sum
 from inventory.models import Product
 from financial.models import Sale, Expense, AccountsReceivable
-from .models import AIAssistantConfig
+from .models import AIAssistantConfig, ChatMessage
 
 logger = logging.getLogger(__name__)
 
@@ -165,3 +165,131 @@ class AIAssistantService:
         except Exception as e:
             logger.error(f"Gemini API Exception: {e}")
             return "Desculpe, o serviço de IA está indisponível no momento. Por favor, tente novamente mais tarde."
+
+    @classmethod
+    def stream_ai(cls, conversation, user_prompt, user=None):
+        """
+        Streaming generator that queries Google Gemini API with streamGenerateContent (alt=sse),
+        yielding Server-Sent Event (SSE) chunks in real-time.
+        Saves the complete response and updates conversation title on finish.
+        """
+        config = AIAssistantConfig.get_solo()
+
+        if not config or not config.is_active:
+            err = "O assistente de IA está temporariamente desativado nas configurações do sistema."
+            yield f"data: {json.dumps({'chunk': err})}\n\n"
+            yield f"data: {json.dumps({'done': True, 'error': True})}\n\n"
+            return
+
+        api_key = config.get_api_key()
+        if not api_key:
+            err = "O assistente de IA não está configurado. Por favor, cadastre a chave API do Gemini nas configurações."
+            yield f"data: {json.dumps({'chunk': err})}\n\n"
+            yield f"data: {json.dumps({'done': True, 'error': True})}\n\n"
+            return
+
+        model_name = config.model_name or 'gemini-2.5-flash'
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:streamGenerateContent?alt=sse&key={api_key}"
+
+        system_instruction_text = cls.build_system_prompt_with_context(config)
+
+        # Build contents with conversation history (last 10 messages for rich conversational context)
+        contents = []
+        if conversation:
+            past_messages = conversation.messages.order_by('timestamp')
+            for m in past_messages:
+                if not m.content:
+                    continue
+                role = "user" if m.role == "user" else "model"
+                contents.append({
+                    "role": role,
+                    "parts": [{"text": m.content}]
+                })
+
+        # Append current user prompt
+        contents.append({
+            "role": "user",
+            "parts": [{"text": user_prompt}]
+        })
+
+        payload = {
+            "system_instruction": {
+                "parts": [
+                    {"text": system_instruction_text}
+                ]
+            },
+            "contents": contents,
+            "generationConfig": {
+                "temperature": config.temperature if config.temperature is not None else 0.7
+            }
+        }
+
+        data_bytes = json.dumps(payload).encode('utf-8')
+        req = urllib.request.Request(
+            url,
+            data=data_bytes,
+            headers={'Content-Type': 'application/json'},
+            method='POST'
+        )
+
+        full_response_parts = []
+
+        try:
+            with urllib.request.urlopen(req, timeout=35) as resp:
+                for raw_line in resp:
+                    line = raw_line.decode('utf-8', errors='replace').strip()
+                    if not line:
+                        continue
+                    if line.startswith('data: '):
+                        data_str = line[6:].strip()
+                        if not data_str:
+                            continue
+                        try:
+                            chunk_json = json.loads(data_str)
+                            candidates = chunk_json.get('candidates', [])
+                            if candidates:
+                                parts = candidates[0].get('content', {}).get('parts', [])
+                                if parts:
+                                    text_piece = parts[0].get('text', '')
+                                    if text_piece:
+                                        full_response_parts.append(text_piece)
+                                        yield f"data: {json.dumps({'chunk': text_piece})}\n\n"
+                        except json.JSONDecodeError:
+                            continue
+
+        except urllib.error.HTTPError as err:
+            logger.error(f"Gemini API HTTP Error {err.code}: {err.reason}")
+            err_msg = f"Ocorreu um erro na requisição do serviço de IA ({err.code})."
+            yield f"data: {json.dumps({'chunk': err_msg})}\n\n"
+            full_response_parts.append(err_msg)
+        except Exception as e:
+            logger.error(f"Gemini API Streaming Exception: {e}")
+            err_msg = "Desculpe, ocorreu uma instabilidade na conexão com o modelo de IA."
+            yield f"data: {json.dumps({'chunk': err_msg})}\n\n"
+            full_response_parts.append(err_msg)
+
+        full_response_text = "".join(full_response_parts).strip()
+        if not full_response_text:
+            full_response_text = "O assistente de IA respondeu sem conteúdo legível."
+            yield f"data: {json.dumps({'chunk': full_response_text})}\n\n"
+
+        # Save assistant message to DB
+        ChatMessage.objects.create(
+            conversation=conversation,
+            user=user,
+            role='assistant',
+            content=full_response_text
+        )
+
+        # Update conversation title if default or first message
+        if conversation:
+            if conversation.title in ("Nova Conversa", "", "Sem título"):
+                cleaned_title = user_prompt.strip().replace('\n', ' ')
+                if len(cleaned_title) > 35:
+                    cleaned_title = cleaned_title[:35].rstrip() + "..."
+                conversation.title = cleaned_title
+            conversation.save()
+
+        # Send final completion event
+        yield f"data: {json.dumps({'done': True, 'conversation_id': conversation.id if conversation else None, 'title': conversation.title if conversation else 'Conversa'})}\n\n"
+

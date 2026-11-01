@@ -80,12 +80,44 @@ class AIAssistantConfig(models.Model):
 AIConfiguration = AIAssistantConfig
 
 
+class ChatConversation(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='chat_conversations',
+        null=True,
+        blank=True
+    )
+    title = models.CharField(
+        max_length=200,
+        default="Nova Conversa",
+        verbose_name="Título da Conversa"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Conversa do Chat"
+        verbose_name_plural = "Conversas do Chat"
+        ordering = ['-updated_at']
+
+    def __str__(self):
+        return f"{self.title} ({self.updated_at.strftime('%d/%m/%Y %H:%M')})"
+
+
 class ChatMessage(models.Model):
     ROLE_CHOICES = [
         ('user', 'Usuário'),
         ('assistant', 'Assistente'),
     ]
 
+    conversation = models.ForeignKey(
+        ChatConversation,
+        on_delete=models.CASCADE,
+        related_name='messages',
+        null=True,
+        blank=True
+    )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
