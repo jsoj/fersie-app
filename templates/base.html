@@ -22,6 +22,18 @@
       <li><a href="{% url 'catalog:visual_catalog' %}">Catálogo</a></li>
       <li><a href="{% url 'ai_assistant:chat' %}">Assistente IA</a></li>
     </ul>
+    <div class="fersie-nav-user" style="display: flex; align-items: center; gap: 1rem; margin-left: auto;">
+      {% if user.is_authenticated %}
+        <span style="font-size: 0.85rem; color: #d1d5db;">Olá, <strong>{{ user.first_name|default:user.username }}</strong></span>
+        {% if user.is_staff %}
+          <a href="/admin/" style="font-size: 0.85rem; color: var(--fersie-gold); text-decoration: none; border-bottom: 1px dotted var(--fersie-gold);" title="Painel Técnico Django">Admin</a>
+        {% endif %}
+        <form method="post" action="{% url 'logout' %}" style="display: inline; margin: 0;">
+          {% csrf_token %}
+          <button type="submit" style="background: transparent; border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 0.3rem 0.75rem; border-radius: 4px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s;">Sair</button>
+        </form>
+      {% endif %}
+    </div>
   </nav>
 
   <main class="fersie-app-container">

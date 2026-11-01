@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acesso Restrito — FERSIÊ Gestão</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/fersie-design-system.css">
+  <link rel="stylesheet" href="/static/css/app.css">
+  <style>
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, hsl(210, 15%, 12%) 0%, hsl(210, 15%, 18%) 100%);
+      font-family: var(--fersie-font-sans, "Inter", sans-serif);
+      margin: 0;
+      padding: 1.5rem;
+      box-sizing: border-box;
+    }
+    .fersie-auth-card {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 2.75rem 2.5rem;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .fersie-auth-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .fersie-auth-brand {
+      font-family: var(--fersie-font-serif, "Playfair Display", serif);
+      font-size: 2.2rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      color: hsl(210, 15%, 15%);
+      margin: 0 0 0.5rem 0;
+      text-transform: uppercase;
+    }
+    .fersie-auth-tagline {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: hsl(43, 62%, 45%);
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    .fersie-auth-sub {
+      font-size: 0.9rem;
+      color: #666;
+      margin: 0;
+    }
+    .fersie-auth-divider {
+      width: 40px;
+      height: 2px;
+      background: hsl(43, 62%, 52%);
+      margin: 1rem auto;
+    }
+    .fersie-form-group {
+      margin-bottom: 1.25rem;
+    }
+    .fersie-form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: hsl(210, 15%, 20%);
+      margin-bottom: 0.4rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .fersie-form-input {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      box-sizing: border-box;
+      transition: all 0.2s ease;
+      background: #fdfdfd;
+    }
+    .fersie-form-input:focus {
+      outline: none;
+      border-color: hsl(43, 62%, 52%);
+      box-shadow: 0 0 0 3px rgba(212, 160, 23, 0.2);
+      background: #ffffff;
+    }
+    .fersie-btn-submit {
+      width: 100%;
+      padding: 0.9rem 1.5rem;
+      background: hsl(210, 15%, 15%);
+      color: #ffffff;
+      border: 1px solid hsl(43, 62%, 52%);
+      border-radius: 6px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-top: 1rem;
+    }
+    .fersie-btn-submit:hover {
+      background: hsl(43, 62%, 48%);
+      color: #ffffff;
+      border-color: hsl(43, 62%, 40%);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(212, 160, 23, 0.3);
+    }
+    .fersie-error-box {
+      background: #fee2e2;
+      border-left: 4px solid #ef4444;
+      color: #991b1b;
+      padding: 0.75rem 1rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      margin-bottom: 1.25rem;
+    }
+    .fersie-auth-footer {
+      text-align: center;
+      margin-top: 2rem;
+      font-size: 0.8rem;
+      color: #9ca3af;
+    }
+  </style>
+</head>
+<body>
+  <div class="fersie-auth-card">
+    <div class="fersie-auth-header">
+      <div class="fersie-auth-brand">FERSIÊ</div>
+      <div class="fersie-auth-tagline">Atelier & Alfaiataria</div>
+      <div class="fersie-auth-divider"></div>
+      <p class="fersie-auth-sub">Acesso restrito ao sistema de gestão</p>
+    </div>
+
+    {% if form.errors %}
+      <div class="fersie-error-box">
+        <strong>Atenção:</strong> Usuário ou senha incorretos. Por favor, verifique suas credenciais.
+      </div>
+    {% endif %}
+
+    <form method="post" action="{% url 'login' %}">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ next|default:'/' }}">
+
+      <div class="fersie-form-group">
+        <label for="id_username">Usuário</label>
+        <input type="text" name="username" autofocus autocapitalize="none" autocomplete="username" maxlength="150" required id="id_username" class="fersie-form-input" placeholder="Digite seu usuário">
+      </div>
+
+      <div class="fersie-form-group">
+        <label for="id_password">Senha</label>
+        <input type="password" name="password" autocomplete="current-password" required id="id_password" class="fersie-form-input" placeholder="••••••••">
+      </div>
+
+      <button type="submit" class="fersie-btn-submit">
+        Entrar no Sistema
+      </button>
+    </form>
+
+    <div class="fersie-auth-footer">
+      Ambiente Protegido &bull; Fersiê &copy; {% now "Y" %}
+    </div>
+  </div>
+</body>
+</html>
