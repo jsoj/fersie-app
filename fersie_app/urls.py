@@ -4,8 +4,10 @@ from django.urls import path, re_path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.static import serve
+from inventory import views as inventory_views
 
 urlpatterns = [
+    path('api/v1/public/products/', inventory_views.public_products_api, name='public_products_api'),
     path('login/', auth_views.LoginView.as_view(
         template_name='registration/login.html',
         redirect_authenticated_user=True

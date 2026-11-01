@@ -19,9 +19,9 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('cod_unico', 'descricao', 'cor', 'tamanho', 'preco_custo', 'preco_venda', 'quantidade', 'categoria')
-    list_editable = ('preco_venda', 'quantidade')
+    list_display = ('cod_unico', 'descricao', 'cor', 'tamanho', 'preco_venda', 'quantidade', 'exibir_no_site', 'destaque_vitrine', 'categoria')
+    list_editable = ('preco_venda', 'quantidade', 'exibir_no_site', 'destaque_vitrine')
     search_fields = ('cod_unico', 'descricao', 'cor', 'tamanho')
-    list_filter = ('categoria', 'fornecedor', 'tamanho')
+    list_filter = ('exibir_no_site', 'destaque_vitrine', 'categoria', 'fornecedor', 'tamanho')
     list_per_page = 25
     inlines = [ProductImageInline]

@@ -36,6 +36,8 @@ class Product(models.Model):
     quantidade = models.IntegerField(default=1, verbose_name="Quantidade em Estoque")
     categoria = models.CharField(max_length=50, default="Alfaiataria", verbose_name="Categoria")
     category_obj = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name="products", verbose_name="Objeto Categoria")
+    exibir_no_site = models.BooleanField(default=False, verbose_name="Exibir no Site (fersie.com)")
+    destaque_vitrine = models.BooleanField(default=False, verbose_name="Destaque na Home")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

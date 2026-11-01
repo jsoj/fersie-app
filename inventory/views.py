@@ -1,5 +1,6 @@
 from decimal import Decimal
 from django.shortcuts import render, get_object_or_404, redirect
+from django.http import JsonResponse
 from django.db.models import Sum, Q
 from django.core.paginator import Paginator
 from django.contrib import messages
@@ -135,4 +136,34 @@ def product_detail(request, pk):
         'product': product,
         'transactions': transactions,
     })
+
+
+def public_products_api(request):
+    """
+    Public API consumed by fersie.com: returns all products marked with exibir_no_site=True,
+    including photos, prices, categories, and inventory status.
+    """
+    products = Product.objects.filter(exibir_no_site=True).prefetch_related('images')
+    data = []
+    for p in products:
+        images = []
+        for img in p.images.all():
+            if img.image:
+                images.append(request.build_absolute_uri(img.image.url))
+        data.append({
+            'code': p.cod_unico,
+            'name': p.descricao,
+            'color': p.cor,
+            'size': p.tamanho,
+            'category': p.categoria,
+            'price': str(p.preco_venda),
+            'in_stock': p.quantidade > 0,
+            'featured': p.destaque_vitrine,
+            'images': images,
+            'image_url': images[0] if images else None,
+        })
+    response = JsonResponse({'count': len(data), 'results': data})
+    response['Access-Control-Allow-Origin'] = '*'
+    response['Access-Control-Allow-Methods'] = 'GET, OPTIONS'
+    return response
 

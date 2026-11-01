@@ -16,6 +16,7 @@ class RequireLoginMiddleware:
             re.compile(r'^/admin/login/'),
             re.compile(r'^/static/'),
             re.compile(r'^/media/'),
+            re.compile(r'^/api/v1/public/'),
             re.compile(r'^/favicon\.ico$'),
         ]
 
